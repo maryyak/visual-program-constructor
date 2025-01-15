@@ -1,29 +1,33 @@
 const { app, BrowserWindow } = require('electron');
-const path = require('path');
+
+let mainWindow;
 
 function createWindow() {
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false, // Включено для более простого взаимодействия
-            devTools: true, // Включено для отладки
         },
     });
 
-    // Загрузить приложение React (URL или локальный файл index.html)
-    mainWindow.loadURL('http://localhost:3000'); // Заменить на путь к статическим файлам после сборки
+    mainWindow.loadURL('http://localhost:3000'); // Адрес для разработки на React
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
 }
 
-app.whenReady().then(() => {
-    createWindow();
-
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-});
+app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+app.on('activate', () => {
+    if (mainWindow === null) {
+        createWindow();
+    }
 });

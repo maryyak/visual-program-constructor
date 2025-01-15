@@ -1,0 +1,65 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+.gridLayout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.button{
+  border-radius: 4px;
+  background: none;
+  border: 1px solid #908269;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: #908269;
+  padding: 12px 30px;
+  cursor: pointer;
+}
+
+.avatar{
+  display: block;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #434343;
+}
+
+.row{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+}
+
+.name{
+  font-size: 21px;
+  color: #434343;
+}
+
+.role{
+  color: #434343;
+}
+
+.info{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.header{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}

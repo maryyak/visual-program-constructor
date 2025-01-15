@@ -1,3 +1,15 @@
+.button{
+  border-radius: 4px;
+  background: #908269;
+  border: none;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: #fff;
+  padding: 12px 30px;
+  cursor: pointer;
+  margin-bottom: 7px;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -35,16 +47,4 @@
   left: 12px;
   top: 50%;
   transform: translateY(-56%);
-}
-
-.button{
-  border-radius: 4px;
-  background: #908269;
-  border: none;
-  font-size: 14px;
-  letter-spacing: 0.01em;
-  color: #fff;
-  padding: 12px 30px;
-  cursor: pointer;
-  margin-bottom: 7px;
 }
