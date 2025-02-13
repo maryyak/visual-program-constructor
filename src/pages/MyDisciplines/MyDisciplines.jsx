@@ -1,22 +1,25 @@
 import React, {useState} from 'react';
-import {mockPrograms} from "../../utils/mockedData";
 import useSearch from "../../hooks/useSearch";
 import usePagination from "../../hooks/usePagination";
-import styles from "./MyPrograms.module.scss";
+import styles from "./MyDisciplines.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
 import Pagination from "../../components/Pagination/Pagination";
-import ProgramCard from "./components/ProgramCard/ProgramCard";
+import DisciplineCard from "./components/DisciplineCard/DisciplineCard";
+import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 
-const MyPrograms = () => {
-    const programs = mockPrograms;
+const MyDisciplines = () => {
+    const {disciplines, loading, error} = useDisciplines();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
 
-    const filteredModules = useSearch(programs, query);
+    const filteredModules = useSearch(disciplines, query);
     const {currentElements, ...paginationProps} = usePagination(filteredModules);
+
+    if (loading) return <p>Загрузка...</p>;
+    if (error) return <p style={{color: "red"}}>Ошибка: {error}</p>;
 
     return (
         <div className={styles.container}>
@@ -38,8 +41,8 @@ const MyPrograms = () => {
                 />
             </div>
             <div className={styles.gridLayout}>
-                {currentElements.map((program) => (
-                    <ProgramCard key={program.id} program={program}/>
+                {currentElements.map((discipline) => (
+                    <DisciplineCard key={discipline.id} discipline={discipline}/>
                 ))}
             </div>
             <Pagination {...paginationProps}/>
@@ -47,4 +50,4 @@ const MyPrograms = () => {
     );
 };
 
-export default MyPrograms;
+export default MyDisciplines;

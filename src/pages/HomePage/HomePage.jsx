@@ -2,13 +2,17 @@ import React from 'react';
 import styles from "./HomePage.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
 import ModuleCard from "../MyModules/components/ModuleCard/ModuleCard";
-import {mockModules, mockPrograms} from "../../utils/mockedData";
 import {Link} from "react-router-dom";
-import ProgramCard from "../MyPrograms/components/ProgramCard/ProgramCard";
+import useModules from "../../hooks/api/modules/useModules";
+import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
+import DisciplineCard from "../MyDisciplines/components/DisciplineCard/DisciplineCard";
 
 const HomePage = () => {
-    const modules = mockModules;
-    const programs = mockPrograms;
+    const { modules, loading: modulesLoading, error: modulesError } = useModules();
+    const { disciplines, loading: disciplinesLoading, error: disciplinesError } = useDisciplines();
+
+    if (modulesLoading || disciplinesLoading) return <p>Загрузка...</p>;
+    if (disciplinesError || modulesError) return <p style={{ color: "red" }}>Ошибка: {disciplinesError || modulesError}</p>;
 
     return (
         <div className={styles.container}>
@@ -48,8 +52,8 @@ const HomePage = () => {
                 <button className={styles.button}>Смотреть все модули</button>
             </div>
             <div className={styles.group}>
-                <BaseTitle title="Мои учебные программы" button={
-                    <Link to={`/my-programs`}>
+                <BaseTitle title="Мои дисциплины" button={
+                    <Link to={`/my-disciplines`}>
                         <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="34"
                              height="31" viewBox="0 0 34 31" fill="none">
                             <rect width="34" height="31" fill="url(#pattern0_839_1862)"/>
@@ -66,11 +70,11 @@ const HomePage = () => {
                     </Link>
                 }/>
                 <div className={styles.gridLayout}>
-                    {programs.slice(0, 3).map((program) => (
-                        <ProgramCard key={program.id} program={program}/>
+                    {disciplines.slice(0, 3).map((discipline) => (
+                        <DisciplineCard key={discipline.id} discipline={discipline}/>
                     ))}
                 </div>
-                <button className={styles.button}>Смотреть все учебные программы</button>
+                <button className={styles.button}>Смотреть все дисциплины</button>
             </div>
         </div>
     );

@@ -1,17 +1,53 @@
-import {useState} from 'react';
-import {mockTopics} from "../../../../utils/mockedData";
+import React, {useState} from 'react';
 import useSearch from "../../../../hooks/useSearch";
 import styles from "./TopicEditor.module.scss";
+import useTopics from "../../../../hooks/api/topics/useTopics";
+import clsx from "clsx";
+import useModulesTopic from "../../../../hooks/api/modules/useModulesTopic";
 
-const TopicEditor = () => {
-    const topics = mockTopics;
+const API_URL = process.env.REACT_APP_API_URL;
+
+const TopicEditor = (module) => {
+    const {topics, loading, error} = useTopics();
+    const moduleId = module?.module?.id
+    const {topic: moduleTopic, loading: moduleLoading, error: moduleError, mutate} = useModulesTopic(moduleId);
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
 
+    const handleTopicSelect = async (topic) => {
+        try {
+            if (!moduleId || !topic.id) {
+                throw new Error("Некорректные данные");
+            }
+
+            const response = await fetch(`${API_URL}/modules/${moduleId}/topic/${topic.id}`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"}
+            });
+
+            if (!response.ok) throw new Error("Ошибка обновления темы");
+
+        } catch (err) {
+            console.error("Ошибка:", err);
+        } finally {
+            mutate();
+        }
+    }
+
     const currentElements = useSearch(topics, query);
+
+    const sortedTopics = [...currentElements].sort((a, b) => {
+        if (a.id === moduleTopic?.id) return -1;
+        if (b.id === moduleTopic?.id) return 1;
+        return 0;
+    });
+
+
+    if (loading || moduleLoading) return <p>Загрузка...</p>;
+    if (error || moduleError) return <p style={{color: "red"}}>Ошибка: {error}</p>;
 
     return (
         <div className={styles.topicEditor}>
@@ -33,8 +69,13 @@ const TopicEditor = () => {
                     />
                 </div>
                 <div className={styles.topicsGroup}>
-                    {currentElements.map((topic) => (
-                        <div className={styles.topic} id={topic.id} key={topic.id}>
+                    {sortedTopics.map((topic) => (
+                        <div
+                            className={clsx(styles.topic,
+                                topic.id === moduleTopic.id ? styles.selected : "")}
+                            id={topic.id} key={topic.id}
+                            onClick={() => handleTopicSelect(topic)}
+                        >
                             {topic.title}
                         </div>
                     ))}

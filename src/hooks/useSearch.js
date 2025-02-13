@@ -3,11 +3,11 @@ const useSearch = (data, query) => {
     const normalizedQuery = query.toLowerCase();
 
     return data.filter((item) => {
-        const title = item.title.toLowerCase();
-        const text = item.description.toLowerCase();
+        const title = item.title?.toLowerCase();
+        const text = item.description?.toLowerCase();
 
         // Проверяем, содержит ли заголовок или текст введённый запрос
-        return title.includes(normalizedQuery) || text.includes(normalizedQuery);
+        return title?.includes(normalizedQuery) || text?.includes(normalizedQuery);
     });
 };
 

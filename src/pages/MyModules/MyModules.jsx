@@ -1,15 +1,15 @@
 import styles from "./MyModules.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
-import {mockModules} from "../../utils/mockedData";
 import ModuleCard from "./components/ModuleCard/ModuleCard";
 import Pagination from "../../components/Pagination/Pagination";
 import usePagination from "../../hooks/usePagination";
 import React, {useState} from "react";
 import useSearch from "../../hooks/useSearch";
+import useModules from "../../hooks/api/modules/useModules";
 
 
 const MyModules = () => {
-    const modules = mockModules;
+    const { modules, loading, error } = useModules();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
@@ -18,6 +18,9 @@ const MyModules = () => {
 
     const filteredModules = useSearch(modules, query);
     const {currentElements, ...paginationProps} = usePagination(filteredModules);
+
+    if (loading) return <p>Загрузка...</p>;
+    if (error) return <p style={{ color: "red" }}>Ошибка: {error}</p>;
 
     return (
         <div className={styles.container}>

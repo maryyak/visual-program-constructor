@@ -53,9 +53,17 @@
   padding: 15px 0;
   font-size: 15px;
   color: #434343;
+  cursor: pointer;
 
   &:not(:last-child) {
     border-bottom: 1px solid #eff0f6;
+  }
+
+  &.selected{
+    color: #908269;
+    font-weight: 600;
+    position: relative;
+    border-bottom: 1px solid #908269;
   }
 }
 

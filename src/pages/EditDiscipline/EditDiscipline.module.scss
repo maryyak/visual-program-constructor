@@ -1,4 +1,4 @@
-.programContainer{
+.disciplineContainer{
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
   background: #fff;
   display: flex;
@@ -13,13 +13,13 @@
   color: #434343;
 }
 
-.programContainer{
+.disciplineContainer{
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.programBlock{
+.disciplineBlock{
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
   background: #fff;
   padding: 17px 19px;
@@ -27,6 +27,15 @@
   line-height: 120%;
   letter-spacing: 0.01em;
   color: #434343;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.deleteButton{
+  background: none;
+  border-radius: 5px;
+  border: 1px solid #434343;
 }
 
 .page {

@@ -1,17 +1,20 @@
-import React, {useState} from 'react';
-import {mockTopics} from "../../../../utils/mockedData";
+import React, { useState } from "react";
 import styles from "./TopicViewer.module.scss";
 import useSearch from "../../../../hooks/useSearch";
+import useTopics from "../../../../hooks/api/topics/useTopics";
+import TopicWithModules from "./components/TopicWithModules/TopicWithModules";
 
-const TopicViewer = () => {
-    const topics = mockTopics;
-
+const TopicViewer = (disciplineModules) => {
+    const { topics, loading, error } = useTopics();
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
 
     const currentElements = useSearch(topics, query);
+
+    if (loading) return <p>Загрузка...</p>;
+    if (error) return <p style={{ color: "red" }}>Ошибка: {error}</p>;
 
     return (
         <div className={styles.topicEditor}>
@@ -34,14 +37,7 @@ const TopicViewer = () => {
                 </div>
                 <div className={styles.topicsGroup}>
                     {currentElements.map((topic) => (
-                        <div className={styles.topic} id={topic.id} key={topic.id}>
-                            <div className={styles.topicHeading}>
-                                <svg width="5" height="10" viewBox="0 0 5 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M0 10L5 5L0 0L0 10Z" fill="#151515" />
-                                </svg>
-                                <span>{topic.title}</span>
-                            </div>
-                        </div>
+                        <TopicWithModules key={topic.id} topic={topic} disciplineModules={disciplineModules} />
                     ))}
                 </div>
             </div>

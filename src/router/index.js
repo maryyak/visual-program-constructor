@@ -1,10 +1,10 @@
 import MyModules from '../pages/MyModules/MyModules';
 import EditModule from "../pages/EditModule/EditModule";
 import HomePage from "../pages/HomePage/HomePage";
-import MyPrograms from "../pages/MyPrograms/MyPrograms";
+import MyDisciplines from "../pages/MyDisciplines/MyDisciplines";
 import ViewModule from "../pages/ViewModule/ViewModule";
-import EditProgram from "../pages/EditProgram/EditProgram";
-import ViewProgram from "../pages/ViewProgram/ViewProgram";
+import EditDiscipline from "../pages/EditDiscipline/EditDiscipline";
+import ViewDiscipline from "../pages/ViewDiscipline/ViewDiscipline";
 
 export const routes = [
     {
@@ -24,15 +24,15 @@ export const routes = [
         element: <ViewModule />,
     },
     {
-        path: '/my-programs',
-        element: <MyPrograms />,
+        path: '/my-disciplines',
+        element: <MyDisciplines />,
     },
     {
-        path: '/edit-program/:id',
-        element: <EditProgram />,
+        path: '/edit-discipline/:id',
+        element: <EditDiscipline />,
     },
     {
-        path: '/program/:id',
-        element: <ViewProgram />,
+        path: '/discipline/:id',
+        element: <ViewDiscipline />,
     },
 ];

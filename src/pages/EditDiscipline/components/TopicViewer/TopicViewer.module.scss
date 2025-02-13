@@ -48,21 +48,3 @@
 .topicsGroup {
   padding: 5px 0 20px;
 }
-
-.topic {
-  padding: 15px 0;
-  font-size: 15px;
-  color: #434343;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid #eff0f6;
-  }
-}
-
-.topicHeading{
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-  font-weight: 500;
-}

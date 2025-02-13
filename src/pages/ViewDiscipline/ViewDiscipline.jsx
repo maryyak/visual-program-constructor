@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ViewProgram = () => {
+const ViewDiscipline = () => {
     return (
         <div>
             
@@ -8,4 +8,4 @@ const ViewProgram = () => {
     );
 };
 
-export default ViewProgram;
+export default ViewDiscipline;
