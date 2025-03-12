@@ -8,6 +8,8 @@ import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 import useDisciplinesModules from "../../hooks/api/disciplines/useDisciplinesModules";
 import useModules from "../../hooks/api/modules/useModules";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import Notification from "../../components/Notification/Notification";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -24,6 +26,8 @@ const EditDiscipline = () => {
     const [disciplineModules, setDisciplineModules] = useState([]);
     // Сохраняем исходное состояние для сравнения при сохранении
     const [initialModules, setInitialModules] = useState([]);
+
+    const [showNotification, setNotification] = useState(false);
 
     // Инициализируем состояние, когда приходят данные с API
     useEffect(() => {
@@ -113,6 +117,7 @@ const EditDiscipline = () => {
             }
             // Обновляем исходное состояние
             setInitialModules([...disciplineModules]);
+            setNotification(true);
         } catch (error) {
             console.error('Ошибка сохранения:', error);
         }
@@ -122,6 +127,7 @@ const EditDiscipline = () => {
     if (error) return <p style={{ color: "red" }}>Ошибка: {error}</p>;
 
     return (
+        <>
         <DragDropContext onDragEnd={onDragEnd}>
             <div className={styles.page}>
                 <div className={clsx(styles.colContainer, styles.aside)}>
@@ -215,6 +221,13 @@ const EditDiscipline = () => {
                 </div>
             </div>
         </DragDropContext>
+            {showNotification && (
+                <Notification
+                    message="Дисциплина успешно обновлена!"
+                    onClose={() => setNotification(false)}
+                />
+            )}
+        </>
     );
 };
 
