@@ -1,0 +1,136 @@
+.disciplineContainer{
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.groupHeading{
+  font-weight: 700;
+  font-size: 19px;
+  color: #434343;
+}
+
+.disciplineContainer{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.disciplineBlock{
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
+  background: #fff;
+  padding: 17px 19px;
+  font-size: 21px;
+  line-height: 120%;
+  letter-spacing: 0.01em;
+  color: #434343;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.deleteButton{
+  background: none;
+  border-radius: 5px;
+  border: 1px solid #434343;
+}
+
+.page {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+}
+
+.heading {
+  line-height: 160%;
+  color: #434343;
+  font-size: 21px;
+  letter-spacing: 0.04em;
+}
+
+.colContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+
+  &.main {
+    width: 75%;
+    position: relative;
+  }
+
+  &.aside {
+    width: 25%;
+  }
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contentContainer {
+  padding: 20px;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border: 1px solid #eff0f6;
+  border-radius: 8px;
+}
+
+.editGroup{
+  position: sticky;
+  bottom: 30px;
+  background: white;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.elements{
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+}
+
+.elementsItem{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 150%;
+  letter-spacing: 0.05em;
+  color: #434343;
+  align-items: center;
+  padding: 15px 30px;
+  border-bottom: 1px solid #edeef0;
+  border-right: 1px solid #edeef0;
+  cursor: pointer;
+
+  &:nth-child(3n){
+    border-right: none;
+  }
+}
+
+.actionsItem{
+  font-size: 14px;
+  line-height: 150%;
+  letter-spacing: 0.05em;
+  color: #434343;
+  padding: 15px 30px;
+  cursor: pointer;
+
+  &:nth-child(1){
+    border-right: 1px solid #edeef0;
+  }
+}
+
+.actions{
+  display: flex;
+  flex-direction: row;
+}

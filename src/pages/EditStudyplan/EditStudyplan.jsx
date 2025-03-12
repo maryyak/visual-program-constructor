@@ -1,37 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
-import styles from "./EditDiscipline.module.scss";
 import clsx from "clsx";
 import CustomInput from "../../components/UI/CustomInput/CustomInput";
-import TopicViewer from "./components/TopicViewer/TopicViewer";
 import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
-import useDisciplinesModules from "../../hooks/api/disciplines/useDisciplinesModules";
-import useModules from "../../hooks/api/modules/useModules";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import useStudyplans from "../../hooks/api/studyplans/useStudyplans";
+import useStudyplansDisciplines from "../../hooks/api/studyplans/useStudyplansDisciplines";
+import TopicViewer from "../EditDiscipline/components/TopicViewer/TopicViewer";
+import styles from "./EditStudyplan.module.scss"
+import DisciplineViewer from "./components/DisciplineViewer/DisciplineViewer";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const EditDiscipline = () => {
     const { id } = useParams();
-    const { disciplines, loading, error } = useDisciplines();
-    const discipline = disciplines.find((disc) => disc.id === Number(id));
-    // Модули, которые уже входят в дисциплину (редактируются в разделе)
-    const { modules: disciplineModulesFromAPI } = useDisciplinesModules(id);
-    // Все доступные модули из блока с темами
-    const { modules: availableModules, loading: loadingAvailable } = useModules();
+    const { studyplans, loading, error } = useStudyplans();
+    const studyplan = studyplans.find((plan) => plan.id === Number(id));
+    const { disciplines: studyplanDisciplinesFromAPI } = useStudyplansDisciplines(id);
+    const { disciplines: availableDisciplines, loading: loadingAvailable } = useDisciplines();
 
-    // Локальное состояние для модулей, включённых в дисциплину
-    const [disciplineModules, setDisciplineModules] = useState([]);
+    const [studyplanDisciplines, setStudyplanDisciplines] = useState([]);
     // Сохраняем исходное состояние для сравнения при сохранении
-    const [initialModules, setInitialModules] = useState([]);
+    const [initialDisciplines, setInitialDisciplines] = useState([]);
 
     // Инициализируем состояние, когда приходят данные с API
     useEffect(() => {
-        if (disciplineModulesFromAPI) {
-            setDisciplineModules(disciplineModulesFromAPI);
-            setInitialModules(disciplineModulesFromAPI);
+        if (studyplanDisciplinesFromAPI) {
+            setStudyplanDisciplines(studyplanDisciplinesFromAPI);
+            setInitialDisciplines(studyplanDisciplinesFromAPI);
         }
-    }, [disciplineModulesFromAPI]);
+    }, [studyplanDisciplinesFromAPI]);
 
     // Обработчик завершения перетаскивания
     const onDragEnd = (result) => {
@@ -39,19 +37,21 @@ const EditDiscipline = () => {
         if (!destination) return;
 
         // Перестановка внутри дисциплины
-        if (source.droppableId === "disciplineModules" && destination.droppableId === "disciplineModules") {
-            const updatedModules = Array.from(disciplineModules);
+        if (source.droppableId === "studyplanDisciplines" && destination.droppableId === "studyplanDisciplines") {
+            console.log(1)
+            const updatedModules = Array.from(studyplanDisciplines);
             const [removed] = updatedModules.splice(source.index, 1);
             updatedModules.splice(destination.index, 0, removed);
-            setDisciplineModules(updatedModules);
+            setStudyplanDisciplines(updatedModules);
         }
         // Перетаскивание из темы в дисциплину
-        else if (source.droppableId === "topicModules" && destination.droppableId === "disciplineModules") {
-            const moduleToAdd = availableModules.find(
-                (mod) => String(mod.id) === draggableId.replace("module-", "")
+        else if (source.droppableId === "availableDisciplines" && destination.droppableId === "disciplineModules") {
+            console.log(2)
+            const moduleToAdd = availableDisciplines.find(
+                (mod) => String(mod.id) === draggableId.replace("discipline-", "")
             );
             if (!moduleToAdd) return;
-            setDisciplineModules(prevModules => {
+            setStudyplanDisciplines(prevModules => {
                 if (!prevModules.find(mod => mod.id === moduleToAdd.id)) {
                     const newModules = Array.from(prevModules);
                     newModules.splice(destination.index, 0, moduleToAdd);
@@ -61,58 +61,53 @@ const EditDiscipline = () => {
             });
         }
         // Перетаскивание из дисциплины обратно в тему (удаление)
-        else if (source.droppableId === "disciplineModules" && destination.droppableId === "topicModules") {
-            setDisciplineModules(prevModules =>
-                prevModules.filter(mod => String(mod.id) !== draggableId.replace("module-", ""))
+        else if (source.droppableId === "disciplineModules" && destination.droppableId === "availableDisciplines") {
+            setStudyplanDisciplines(prevModules =>
+                prevModules.filter(mod => String(mod.id) !== draggableId.replace("discipline-", ""))
             );
         }
     };
 
-    const handleModuleRemove = (module) => {
-        setDisciplineModules(prevModules =>
-            prevModules.filter(mod => mod.id !== module.id)
+    const handleDisciplineRemove = (discipline) => {
+        setStudyplanDisciplines(prevDisciplines =>
+            prevDisciplines.filter(disc => disc.id !== discipline.id)
         );
     };
 
     const handleSaveChanges = async () => {
         try {
-            // Определяем добавленные модули
-            const addedModules = disciplineModules.filter(
-                mod => !initialModules.find(init => init.id === mod.id)
+            const addedDisciplines = studyplanDisciplines.filter(
+                disc => !initialDisciplines.find(init => init.id === disc.id)
             );
-            // Определяем удалённые модули
-            const removedModules = initialModules.filter(
-                init => !disciplineModules.find(mod => mod.id === init.id)
+            const removedDisciplines = initialDisciplines.filter(
+                init => !studyplanDisciplines.find(disc => disc.id === init.id)
             );
 
-            // Сохраняем новые модули
-            for (let mod of addedModules) {
-                const order = disciplineModules.findIndex(item => item.id === mod.id);
-                await fetch(`${API_URL}/disciplines/${id}/modules`, {
+            for (let disc of addedDisciplines) {
+                const order = studyplanDisciplines.findIndex(item => item.id === disc.id);
+                await fetch(`${API_URL}/studyplans/${id}/disciplines`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ moduleId: mod.id, order })
+                    body: JSON.stringify({ disciplineId: disc.id, order })
                 });
             }
 
-            // Удаляем модули, которых больше нет
-            for (let mod of removedModules) {
-                await fetch(`${API_URL}/disciplines/${id}/modules/${mod.id}`, {
+            for (let disc of removedDisciplines) {
+                await fetch(`${API_URL}/studyplans/${id}/disciplines/${disc.id}`, {
                     method: 'DELETE'
                 });
             }
 
-            // Обновляем порядок для всех модулей (как добавленных, так и уже существующих)
-            for (let i = 0; i < disciplineModules.length; i++) {
-                const mod = disciplineModules[i];
-                await fetch(`${API_URL}/disciplines/${id}/modules/${mod.id}`, {
+            for (let i = 0; i < studyplanDisciplines.length; i++) {
+                const disc = studyplanDisciplines[i];
+                await fetch(`${API_URL}/studyplans/${id}/disciplines/${disc.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ order: i })
                 });
             }
             // Обновляем исходное состояние
-            setInitialModules([...disciplineModules]);
+            setInitialDisciplines([...studyplanDisciplines]);
         } catch (error) {
             console.error('Ошибка сохранения:', error);
         }
@@ -125,29 +120,29 @@ const EditDiscipline = () => {
         <DragDropContext onDragEnd={onDragEnd}>
             <div className={styles.page}>
                 <div className={clsx(styles.colContainer, styles.aside)}>
-                    <TopicViewer disciplineModules={disciplineModules}/>
+                    <DisciplineViewer availableDisciplines={availableDisciplines}/>
                 </div>
                 <div className={clsx(styles.colContainer, styles.main)}>
                     <div className={styles.titleContainer}>
-                        <span className={styles.heading}>Название модуля</span>
+                        <span className={styles.heading}>Название учебного плана</span>
                         <CustomInput
                             type="text"
-                            value={discipline.title}
+                            value={studyplan.title}
                         />
                     </div>
                     <div className={styles.titleContainer}>
                         <span className={styles.heading}>Содержание</span>
-                        <Droppable droppableId="disciplineModules">
+                        <Droppable droppableId="studyplanDisciplines">
                             {(provided) => (
                                 <div
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
                                     className={styles.disciplineContainer}
                                 >
-                                    {disciplineModules.map((mod, index) => (
+                                    {studyplanDisciplines.map((disc, index) => (
                                         <Draggable
-                                            key={mod.id}
-                                            draggableId={String(mod.id)}
+                                            key={disc.id}
+                                            draggableId={String(disc.id)}
                                             index={index}
                                         >
                                             {(provided) => (
@@ -157,9 +152,9 @@ const EditDiscipline = () => {
                                                     {...provided.dragHandleProps}
                                                     className={styles.disciplineBlock}
                                                 >
-                                                    {mod.title || mod.name}
+                                                    {disc.title || disc.name}
                                                     <button className={styles.deleteButton}
-                                                            onClick={() => handleModuleRemove(mod)}>✖
+                                                            onClick={() => handleDisciplineRemove(disc)}>✖
                                                     </button>
                                                 </div>
                                             )}

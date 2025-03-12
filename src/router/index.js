@@ -5,6 +5,9 @@ import MyDisciplines from "../pages/MyDisciplines/MyDisciplines";
 import ViewModule from "../pages/ViewModule/ViewModule";
 import EditDiscipline from "../pages/EditDiscipline/EditDiscipline";
 import ViewDiscipline from "../pages/ViewDiscipline/ViewDiscipline";
+import EditStudyplan from "../pages/EditStudyplan/EditStudyplan";
+import MyStudyplans from "../pages/MyStudyplans/MyStudyplans";
+import ViewStudyplan from "../pages/ViewStudyplan/ViewStudyplan";
 
 export const routes = [
     {
@@ -34,5 +37,17 @@ export const routes = [
     {
         path: '/discipline/:id',
         element: <ViewDiscipline />,
+    },
+    {
+        path: '/my-studyplans',
+        element: <MyStudyplans />,
+    },
+    {
+        path: '/edit-studyplan/:id',
+        element: <EditStudyplan />,
+    },
+    {
+        path: '/studyplan/:id',
+        element: <ViewStudyplan />,
     },
 ];
