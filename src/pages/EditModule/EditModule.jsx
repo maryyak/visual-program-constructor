@@ -5,6 +5,7 @@ import clsx from "clsx";
 import TopicEditor from "./components/TopicEditor/TopicEditor";
 import useModules from "../../hooks/api/modules/useModules";
 import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd";
+import Notification from "../../components/Notification/Notification";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -14,6 +15,7 @@ const EditModule = () => {
     const module = modules.find((mod) => mod.id === Number(id));
     const [content, setContent] = useState(module?.content || []);
     const [title, setTitle] = useState(module?.title || "");
+    const [showNotification, setShowNotification] = useState(false);
 
     useEffect(() => {
         setTitle(module?.title || "");
@@ -46,10 +48,13 @@ const EditModule = () => {
             const response = await fetch(`${API_URL}/modules/${module.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, title }),
+                body: JSON.stringify({ content, title })
             });
 
-            if (!response.ok) throw new Error("Ошибка обновления модуля");
+            if (!response.ok) new Error("Ошибка обновления модуля");
+
+            if (response.ok) setShowNotification(true);
+
         } catch (error) {
             console.error("Ошибка:", error);
         }
@@ -109,21 +114,19 @@ const EditModule = () => {
                                 >
                                     {content.map((item, index) => (
                                         <Draggable key={index} draggableId={String(index)} index={index}>
-                                            {(provided, snapshot) => (
+                                            {(provided) => (
                                                 <div
                                                     ref={(el) => {
                                                         headersRef.current[index] = el;
                                                         provided.innerRef(el);
                                                     }}
                                                     {...provided.draggableProps}
-                                                    className={styles.draggableItem}
                                                     style={{
                                                         ...provided.draggableProps.style,
                                                     }}
                                                 >
                                                     {/* Отдельный drag handle */}
-                                                    <div
-                                                        className={styles.dragHandle}
+                                                    <div>
                                                         {...provided.dragHandleProps}
                                                         style={{
                                                             cursor: "grab",
@@ -261,6 +264,12 @@ const EditModule = () => {
                         </div>
                         <div className={styles.actionsItem} onClick={handleSave}>
                             Сохранить изменения
+                            {showNotification && (
+                                <Notification
+                                    message="Модуль успешно обновлён!"
+                                    onClose={() => setShowNotification(false)}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
