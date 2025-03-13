@@ -16,6 +16,13 @@
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
 }
 
+.disciplineContainer{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
 .arrowButton {
   background: none;
   border: none;

@@ -13,7 +13,6 @@ const ViewDiscipline = () => {
     const discipline = disciplines.find((mod) => mod.id === Number(id));
 
     const { modules, loading: modulesLoading, error: modulesError } = useDisciplinesModules(id);
-    console.log([modules]);
 
     if (disciplinesLoading || modulesLoading) return <p>Загрузка...</p>;
     if (disciplinesError || modulesError) return <p style={{color: "red"}}>Ошибка: {disciplinesError}</p>;
@@ -25,7 +24,7 @@ const ViewDiscipline = () => {
                     <h1>{discipline?.title}</h1>
                 </div>
                 <div className={styles.descriptionContainer}>
-                    <span className={styles.heading}>Описание дисциплины:</span>
+                <span className={styles.heading}>Описание дисциплины:</span>
                     <p>{discipline?.description}</p>
                 </div>
             </div>
@@ -36,7 +35,6 @@ const ViewDiscipline = () => {
                         <div key={module.id} className={styles.moduleContainer}>
                             <div>
                                 <h2>{module.title}</h2>
-                                <p>{module.description}</p>
                             </div>
                             <button
                                 className={styles.arrowButton}

@@ -1,5 +1,6 @@
 const express = require("express");
 const { Discipline, Module, DisciplineModules } = require("../models");
+const {Sequelize} = require("sequelize");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -41,11 +42,14 @@ router.get("/:id/modules", async (req, res) => {
 
         // Найти модули, связанные с дисциплиной через DisciplineModules
         const modules = await Module.findAll({
-            include: {
-                model: Discipline,
-                through: { attributes: [] }, // Не включаем лишние данные из связи
-                where: { id },
-            },
+            include: [
+                {
+                    model: Discipline,
+                    through: { attributes: ['order'] }, // Включаем order из связующей таблицы
+                    where: { id },
+                }
+            ],
+            order: [[Sequelize.col('Disciplines->DisciplineModules.order'), 'ASC']],
         });
 
         res.json(modules);

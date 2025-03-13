@@ -47,8 +47,8 @@ const HomePage = () => {
                         </svg>
                     </Link>
                 }/>
-                <div className={styles.gridLayout}>
-                    {modules.slice(0, 3).map((module) => (
+                <div className={styles.gridModulesLayout}>
+                    {modules.slice(0, 4).map((module) => (
                         <ModuleCard key={module.id} module={module}/>
                     ))}
                 </div>
@@ -81,7 +81,7 @@ const HomePage = () => {
             </div>
             <div className={styles.group}>
                 <BaseTitle title="Мои учебные планы" button={
-                    <Link to={`/my-disciplines`}>
+                    <Link to={`/my-studyplans`}>
                         <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="34"
                              height="31" viewBox="0 0 34 31" fill="none">
                             <rect width="34" height="31" fill="url(#pattern0_839_1862)"/>

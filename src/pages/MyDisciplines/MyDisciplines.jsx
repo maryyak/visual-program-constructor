@@ -7,13 +7,30 @@ import Pagination from "../../components/Pagination/Pagination";
 import DisciplineCard from "./components/DisciplineCard/DisciplineCard";
 import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const MyDisciplines = () => {
-    const {disciplines, loading, error} = useDisciplines();
+    const {disciplines, loading, error, mutate} = useDisciplines();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
+
+    const addDiscipline = async () => {
+        try {
+            const response = await fetch(`${API_URL}/disciplines`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({title: "Новая дисциплина", description: "Описание дисциплины"}),
+            });
+
+            if (!response.ok) throw new Error("Ошибка добавления дисциплины");
+            if (response.ok) mutate();
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
 
     const filteredModules = useSearch(disciplines, query);
     const {currentElements, ...paginationProps} = usePagination(filteredModules);
@@ -23,8 +40,8 @@ const MyDisciplines = () => {
 
     return (
         <div className={styles.container}>
-            <BaseTitle title="Мои учебные программы"
-                       button={<button className={styles.button}>Создать новую программу</button>}
+            <BaseTitle title="Мои дисциплины"
+                       button={<button className={styles.button} onClick={() => addDiscipline()}>Создать новую дисциплины</button>}
             />
             <div className={styles.searchWrapper}>
                 <svg className={styles.searchIcon} xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
@@ -35,7 +52,7 @@ const MyDisciplines = () => {
                 <input
                     className={styles.search}
                     type="text"
-                    placeholder="Поиск по программам"
+                    placeholder="Поиск по дисциплинам"
                     value={query}
                     onChange={handleSearch}
                 />

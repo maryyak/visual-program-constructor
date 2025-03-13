@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import styles from './EditModule.module.scss'
 import clsx from "clsx";
 import TopicEditor from "./components/TopicEditor/TopicEditor";
@@ -10,12 +10,14 @@ import Notification from "../../components/Notification/Notification";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const EditModule = () => {
-    const { id } = useParams();
-    const { modules, loading, error } = useModules();
+    const {id} = useParams();
+    const {modules, loading, error} = useModules();
     const module = modules.find((mod) => mod.id === Number(id));
     const [content, setContent] = useState(module?.content || []);
     const [title, setTitle] = useState(module?.title || "");
     const [showNotification, setShowNotification] = useState(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         setTitle(module?.title || "");
@@ -25,16 +27,46 @@ const EditModule = () => {
     const headersRef = useRef([]);
 
     const handleScrollTo = (index) => {
-        headersRef.current[index]?.scrollIntoView({ behavior: "smooth" });
+        headersRef.current[index]?.scrollIntoView({behavior: "smooth"});
     };
 
     useEffect(() => {
         headersRef.current = headersRef.current.slice(0, module?.content.length);
     }, [module?.content]);
 
+    const imageInputRef = useRef(null);
+
+    const handleImageInputClick = () => {
+        imageInputRef.current?.click();
+    };
+
+    const fileInputRef = useRef(null);
+
+    const handleFileInputClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const uploadFile = (event, type) => {
+        const file = event.target.files[0]; // Получаем первый выбранный файл
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch(`${API_URL}/upload`, {
+            method: "POST",
+            body: formData,
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("Файл загружен:", data.fileUrl)
+                setContent([...content, {type, value: `${API_URL}${data.fileUrl}`}])
+            })
+            .catch((err) => console.error("Ошибка загрузки:", err));
+    }
+
     const addElement = (type) => {
-        const newElement = { type, value: type === "image" ? "" : "Новый элемент" };
-        setContent([...content, newElement]);
+        setContent([...content, {type, value: "Новый элемент"}]);
     };
 
     const handleChange = (index, value) => {
@@ -43,15 +75,19 @@ const EditModule = () => {
         setContent(updatedContent);
     };
 
+    const handleDelete = (index) => {
+        setContent(content.filter((_, i) => i !== index));
+    };
+
     const handleSave = async () => {
         try {
             const response = await fetch(`${API_URL}/modules/${module.id}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, title })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({content, title}),
             });
 
-            if (!response.ok) new Error("Ошибка обновления модуля");
+            if (!response.ok) throw new Error("Ошибка обновления модуля");
 
             if (response.ok) setShowNotification(true);
 
@@ -70,6 +106,20 @@ const EditModule = () => {
         setContent(newContent);
     };
 
+    const deleteModule = async () => {
+        try {
+            const response = await fetch(`${API_URL}/modules/${module.id}`, {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+            });
+
+            if (!response.ok) throw new Error("Ошибка удаления модуля");
+            if (response.ok) navigate('/my-modules');
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
+
     if (loading) return <p>Загрузка...</p>;
     if (error) return <p style={{color: "red"}}>Ошибка: {error}</p>;
 
@@ -87,19 +137,20 @@ const EditModule = () => {
                                     onClick={() => handleScrollTo(index)}>{value}</button>
                         ))}
                 </div>
+                <div onClick={() => deleteModule()} className={styles.deleteButton}>Удалить модуль</div>
             </div>
             <div className={clsx(styles.colContainer, styles.main)}>
                 <div className={styles.titleContainer}>
                     <span className={styles.heading}>Название модуля</span>
-                    <div className={styles.contentContainer}>
-                        <h1
+                    <div>
+                        <span
                             contentEditable
                             suppressContentEditableWarning
                             onBlur={(e) => setTitle(e.target.innerText)}
-                            className={styles.editable}
+                            className={clsx(styles.editable, styles.title)}
                         >
                             {title}
-                        </h1>
+                        </span>
                     </div>
                 </div>
                 <div className={styles.titleContainer}>
@@ -114,24 +165,24 @@ const EditModule = () => {
                                 >
                                     {content.map((item, index) => (
                                         <Draggable key={index} draggableId={String(index)} index={index}>
-                                            {(provided) => (
+                                            {(provided, snapshot) => (
                                                 <div
                                                     ref={(el) => {
                                                         headersRef.current[index] = el;
                                                         provided.innerRef(el);
                                                     }}
                                                     {...provided.draggableProps}
+                                                    className={styles.draggableItem}
                                                     style={{
                                                         ...provided.draggableProps.style,
                                                     }}
                                                 >
                                                     {/* Отдельный drag handle */}
-                                                    <div>
+                                                    <div
+                                                        className={styles.dragHandle}
                                                         {...provided.dragHandleProps}
                                                         style={{
                                                             cursor: "grab",
-                                                            display: "inline-block",
-                                                            marginRight: "8px",
                                                         }}
                                                     >
                                                         &#9776;
@@ -144,7 +195,7 @@ const EditModule = () => {
                                                             suppressContentEditableWarning
                                                             onBlur={(e) => handleChange(index, e.target.innerText)}
                                                             className={styles.editable}
-                                                            style={{ display: "inline-block" }}
+                                                            style={{display: "inline-block"}}
                                                         >
                                                             {item.value}
                                                         </h2>
@@ -155,19 +206,37 @@ const EditModule = () => {
                                                             suppressContentEditableWarning
                                                             onBlur={(e) => handleChange(index, e.target.innerText)}
                                                             className={styles.editable}
-                                                            style={{ display: "inline-block" }}
+                                                            style={{display: "inline-block"}}
                                                         >
                                                             {item.value}
                                                         </p>
                                                     )}
                                                     {item.type === "image" && (
-                                                        <img
-                                                            className={styles.image}
-                                                            alt="URL изображения"
-                                                            src={item.value}
-                                                            onChange={(e) => handleChange(index, e.target.value)}
-                                                        />
+                                                        <div>
+                                                            <img
+                                                                className={styles.image}
+                                                                alt="URL изображения"
+                                                                src={item.value}
+                                                                onChange={(e) => handleChange(index, e.target.value)}
+                                                            />
+                                                        </div>
                                                     )}
+                                                    {item.type === "file" && (
+                                                        <div className={styles.fileItem} key={index}
+                                                             onChange={(e) => handleChange(index, e.target.value)}>
+                                                            <a href={item.value} target="_blank"
+                                                               rel="noopener noreferrer">
+                                                                📄 {item.value.replace(`${API_URL}/upload/`, "")}
+                                                            </a>
+                                                        </div>
+                                                    )}
+
+                                                    <div style={{
+                                                        cursor: "pointer",
+                                                    }}
+                                                         onClick={() => handleDelete(index)}>✖
+                                                    </div>
+
                                                 </div>
                                             )}
                                         </Draggable>
@@ -211,7 +280,7 @@ const EditModule = () => {
                             </svg>
                             <span>Текст</span>
                         </div>
-                        <div className={styles.elementsItem} onClick={() => addElement("image")}>
+                        <div className={styles.elementsItem} onClick={() => handleImageInputClick()}>
                             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
                                  width="25" height="25" viewBox="0 0 25 25" fill="none">
                                 <rect width="25" height="25" fill="url(#pattern0_731_2041)"/>
@@ -225,8 +294,15 @@ const EditModule = () => {
                                 </defs>
                             </svg>
                             <span>Изображение</span>
+                            <input
+                                type="file"
+                                ref={imageInputRef}
+                                onChange={(e) => uploadFile(e, "image")}
+                                accept=".jpg,.jpeg,.png,.gif,.webp"
+                                style={{display: "none"}}
+                            />
                         </div>
-                        <div className={styles.elementsItem}>
+                        <div className={styles.elementsItem} onClick={() => handleFileInputClick()}>
                             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
                                  width="18" height="17" viewBox="0 0 18 17" fill="none">
                                 <rect width="18" height="17" fill="url(#pattern0_826_1807)"/>
@@ -241,6 +317,12 @@ const EditModule = () => {
                                 </defs>
                             </svg>
                             <span>Файл</span>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={(e) => uploadFile(e, "file")}
+                                style={{display: "none"}}
+                            />
                         </div>
                     </div>
                     <div className={styles.actions}>

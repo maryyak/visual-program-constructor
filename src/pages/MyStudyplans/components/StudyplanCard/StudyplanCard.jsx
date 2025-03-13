@@ -5,7 +5,10 @@ const DisciplineCard = ({studyplan}) => {
     return (
         <div className={styles.card}>
             <div className={styles.title}>{studyplan.title}</div>
-            <div className={styles.description}>{studyplan.description}</div>
+            <div className={styles.description}>
+                <span>{studyplan.description}</span>
+                <span>{studyplan.courseNumber} курс</span>
+            </div>
             <div className={styles.buttons}>
                 <Link className={styles.buttonWrapper} to={`/studyplan/${studyplan.id}`}>
                     <button className={styles.button}>Просмотреть</button>

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Studyplan, Discipline, StudyplanDisciplines} = require("../models");
+const {Sequelize} = require("sequelize");
 
 // Получить все учебные планы с дисциплинами
 router.get("/", async (req, res) => {
@@ -65,6 +66,7 @@ router.get("/:id/disciplines", async (req, res) => {
                 through: { attributes: [] }, // Не включаем лишние данные из связи
                 where: { id },
             },
+            order: [[Sequelize.col('Studyplans->StudyplanDisciplines.order'), 'ASC']]
         });
 
         res.json(disciplines);

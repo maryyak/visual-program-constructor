@@ -36,9 +36,8 @@ router.patch("/:id", async (req, res) => {
         if (!module) return res.status(404).json({ error: "Модуль не найден" });
 
         // Обновляем только переданные поля
-        const { title, description, content } = req.body;
+        const { title, content } = req.body;
         if (title !== undefined) module.title = title;
-        if (description !== undefined) module.description = description;
         if (content !== undefined) module.content = content;
 
         await module.save();

@@ -6,7 +6,6 @@ const ModuleCard = ({module}) => {
     return (
         <div className={styles.card}>
             <div className={styles.title}>{module.title}</div>
-            <div className={styles.description}>{module.description}</div>
             <div className={styles.buttons}>
                 <Link className={styles.buttonWrapper} to={`/module/${module.id}`}>
                     <button className={styles.button}>Просмотреть</button>

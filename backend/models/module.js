@@ -27,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
     content: {
       type: DataTypes.JSONB, // Используем JSONB для хранения массива объектов
       allowNull: false,

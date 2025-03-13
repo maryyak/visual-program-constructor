@@ -77,3 +77,39 @@
   align-items: center;
   cursor: pointer;
 }
+
+.modal{
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal input{
+  outline: none;
+  flex-grow: 1;
+  border: 1px solid #908269;
+  border-radius: 8px;
+  line-height: 120%;
+  letter-spacing: 0.01em;
+  color: #908269;
+  padding: 5px;
+}
+
+.modalBtns{
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.modalBtns button{
+  border-radius: 8px;
+  border: none;
+  background-color: #908269;
+  line-height: 120%;
+  letter-spacing: 0.01em;
+  color: white;
+  padding: 4px;
+}

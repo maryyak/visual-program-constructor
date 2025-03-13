@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import styles from "./EditDiscipline.module.scss";
 import clsx from "clsx";
-import CustomInput from "../../components/UI/CustomInput/CustomInput";
 import TopicViewer from "./components/TopicViewer/TopicViewer";
 import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 import useDisciplinesModules from "../../hooks/api/disciplines/useDisciplinesModules";
 import useModules from "../../hooks/api/modules/useModules";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import Notification from "../../components/Notification/Notification";
-
+import Notification from "../../components/Notification/Notification"
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -22,12 +20,17 @@ const EditDiscipline = () => {
     // Все доступные модули из блока с темами
     const { modules: availableModules, loading: loadingAvailable } = useModules();
 
+    const [title, setTitle] = useState(discipline?.title || "");
+    const [description, setDescription] = useState(discipline?.description || "");
+
     // Локальное состояние для модулей, включённых в дисциплину
     const [disciplineModules, setDisciplineModules] = useState([]);
     // Сохраняем исходное состояние для сравнения при сохранении
     const [initialModules, setInitialModules] = useState([]);
 
     const [showNotification, setNotification] = useState(false);
+
+    const navigate = useNavigate();
 
     // Инициализируем состояние, когда приходят данные с API
     useEffect(() => {
@@ -36,6 +39,11 @@ const EditDiscipline = () => {
             setInitialModules(disciplineModulesFromAPI);
         }
     }, [disciplineModulesFromAPI]);
+
+    useEffect(() => {
+        setTitle(discipline?.title || "");
+        setDescription(discipline?.description || "");
+    }, [discipline]);
 
     // Обработчик завершения перетаскивания
     const onDragEnd = (result) => {
@@ -89,6 +97,12 @@ const EditDiscipline = () => {
                 init => !disciplineModules.find(mod => mod.id === init.id)
             );
 
+            await fetch(`${API_URL}/disciplines/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+
             // Сохраняем новые модули
             for (let mod of addedModules) {
                 const order = disciplineModules.findIndex(item => item.id === mod.id);
@@ -123,6 +137,20 @@ const EditDiscipline = () => {
         }
     };
 
+    const deleteModule = async () => {
+        try {
+            const response = await fetch(`${API_URL}/disciplines/${discipline.id}`, {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+            });
+
+            if (!response.ok) throw new Error("Ошибка удаления дисциплины");
+            if (response.ok) navigate('/my-disciplines');
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
+
     if (loading || loadingAvailable) return <p>Загрузка...</p>;
     if (error) return <p style={{ color: "red" }}>Ошибка: {error}</p>;
 
@@ -132,14 +160,30 @@ const EditDiscipline = () => {
             <div className={styles.page}>
                 <div className={clsx(styles.colContainer, styles.aside)}>
                     <TopicViewer disciplineModules={disciplineModules}/>
+                    <div onClick={() => deleteModule()} className={styles.deleteBtn}>Удалить дисциплину</div>
                 </div>
                 <div className={clsx(styles.colContainer, styles.main)}>
                     <div className={styles.titleContainer}>
-                        <span className={styles.heading}>Название модуля</span>
-                        <CustomInput
-                            type="text"
-                            value={discipline.title}
-                        />
+                        <span className={styles.heading}>Название дисциплины</span>
+                        <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => setTitle(e.target.innerText)}
+                            className={clsx(styles.editable, styles.title)}
+                        >
+                            {title}
+                        </span>
+                    </div>
+                    <div className={styles.titleContainer}>
+                        <span className={styles.heading}>Описание</span>
+                        <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => setDescription(e.target.innerText)}
+                            className={clsx(styles.editable, styles.title)}
+                        >
+                            {description}
+                        </span>
                     </div>
                     <div className={styles.titleContainer}>
                         <span className={styles.heading}>Содержание</span>
@@ -178,21 +222,6 @@ const EditDiscipline = () => {
                     </div>
                     <div className={styles.editGroup}>
                         <div className={styles.elements}>
-                            <div className={styles.elementsItem}>
-                                <svg width="20" height="18" viewBox="0 0 20 18" fill="none"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M6.20003 16.875C6.0409 16.875 5.88829 16.8115 5.77577 16.6985C5.66324 16.5855 5.60003 16.4322 5.60003 16.2723V13.2589H3.80003C3.32282 13.2583 2.86533 13.0676 2.5279 12.7287C2.19046 12.3898 2.00063 11.9302 2.00003 11.4509V1.80804C2.00063 1.3287 2.19046 0.869165 2.5279 0.530222C2.86533 0.191279 3.32282 0.000598051 3.80003 0H18.2C18.6773 0.000498563 19.1348 0.191148 19.4723 0.530112C19.8097 0.869077 19.9995 1.32867 20 1.80804V11.4509C19.9994 11.9302 19.8096 12.3898 19.4722 12.7287C19.1347 13.0676 18.6772 13.2583 18.2 13.2589H10.9108L6.57503 16.7428C6.46861 16.8284 6.33635 16.875 6.20003 16.875ZM3.80003 1.20536C3.6409 1.20536 3.48829 1.26885 3.37577 1.38188C3.26324 1.4949 3.20003 1.6482 3.20003 1.80804V11.4509C3.20003 11.6107 3.26324 11.764 3.37577 11.8771C3.48829 11.9901 3.6409 12.0536 3.80003 12.0536H6.20003C6.35916 12.0536 6.51177 12.1171 6.6243 12.2301C6.73682 12.3431 6.80003 12.4964 6.80003 12.6563V15.0188L10.325 12.1854C10.4315 12.1 10.5638 12.0535 10.7 12.0536H18.2C18.3592 12.0536 18.5118 11.9901 18.6243 11.8771C18.7368 11.764 18.8 11.6107 18.8 11.4509V1.80804C18.8 1.6482 18.7368 1.4949 18.6243 1.38188C18.5118 1.26885 18.3592 1.20536 18.2 1.20536H3.80003Z"
-                                        fill="#908269"/>
-                                    <path
-                                        d="M15.7996 6.02567H6.19964C6.04051 6.02567 5.8879 5.96217 5.77538 5.84915C5.66285 5.73612 5.59964 5.58283 5.59964 5.42299C5.59964 5.26315 5.66285 5.10986 5.77538 4.99683C5.8879 4.88381 6.04051 4.82031 6.19964 4.82031H15.7996C15.9588 4.82031 16.1114 4.88381 16.2239 4.99683C16.3364 5.10986 16.3996 5.26315 16.3996 5.42299C16.3996 5.58283 16.3364 5.73612 16.2239 5.84915C16.1114 5.96217 15.9588 6.02567 15.7996 6.02567Z"
-                                        fill="#908269"/>
-                                    <path
-                                        d="M10.9996 8.43583H6.19964C6.04051 8.43583 5.8879 8.37233 5.77538 8.2593C5.66285 8.14628 5.59964 7.99299 5.59964 7.83315C5.59964 7.67331 5.66285 7.52001 5.77538 7.40699C5.8879 7.29396 6.04051 7.23047 6.19964 7.23047H10.9996C11.1588 7.23047 11.3114 7.29396 11.4239 7.40699C11.5364 7.52001 11.5996 7.67331 11.5996 7.83315C11.5996 7.99299 11.5364 8.14628 11.4239 8.2593C11.3114 8.37233 11.1588 8.43583 10.9996 8.43583Z"
-                                        fill="#908269"/>
-                                </svg>
-                                <span>Группа</span>
-                            </div>
                         </div>
                         <div className={styles.actions}>
                             <div className={styles.actionsItem}>

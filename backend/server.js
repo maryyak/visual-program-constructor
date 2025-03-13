@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,6 +14,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.send("Сервер работает!");
 });
+
+app.use("/api/upload", express.static(path.join(__dirname, "upload")));
 
 // Запуск сервера
 app.listen(PORT, () => {

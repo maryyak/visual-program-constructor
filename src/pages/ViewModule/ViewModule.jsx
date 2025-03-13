@@ -4,6 +4,8 @@ import styles from "../EditModule/EditModule.module.scss";
 import clsx from "clsx";
 import useModules from "../../hooks/api/modules/useModules";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const ViewModule = () => {
     const {id} = useParams();
     const { modules, loading, error } = useModules();
@@ -59,6 +61,14 @@ const ViewModule = () => {
 
                                 case "image":
                                     return <img className={styles.image} key={index} src={item.value} alt="content"/>;
+
+                                case "file":
+                                    return <div className={styles.fileItem} key={index}>
+                                        <a href={item.value} target="_blank"
+                                           rel="noopener noreferrer">
+                                            📄 {item.value.replace(`${API_URL}/upload/`, "")}
+                                        </a>
+                                    </div>
 
                                 default:
                                     return "";

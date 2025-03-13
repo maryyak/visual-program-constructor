@@ -1,4 +1,4 @@
-.disciplineContainer{
+.disciplineContainer {
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
   background: #fff;
   display: flex;
@@ -7,19 +7,19 @@
   padding: 20px;
 }
 
-.groupHeading{
+.groupHeading {
   font-weight: 700;
   font-size: 19px;
   color: #434343;
 }
 
-.disciplineContainer{
+.disciplineContainer {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.disciplineBlock{
+.disciplineBlock {
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
   background: #fff;
   padding: 17px 19px;
@@ -32,7 +32,37 @@
   justify-content: space-between;
 }
 
-.deleteButton{
+.title {
+  padding: 20px;
+  outline: none;
+  font-size: 21px;
+  line-height: 120%;
+  letter-spacing: 0.01em;
+  color: #434343;
+  display: flex;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border: 1px solid #eff0f6;
+  border-radius: 8px;
+}
+
+.editable {
+  &:focus-visible {
+    outline: #434343 1px dashed;
+    border-radius: 8px;
+    padding: 10px;
+  }
+}
+
+.deleteBtn {
+  cursor: pointer;
+  padding: 12px;
+  background: #ad5a51;
+  border-radius: 8px;
+  color: white;
+}
+
+.deleteButton {
   background: none;
   border-radius: 5px;
   border: 1px solid #434343;
@@ -80,7 +110,7 @@
   border-radius: 8px;
 }
 
-.editGroup{
+.editGroup {
   position: sticky;
   bottom: 30px;
   background: white;
@@ -93,12 +123,12 @@
   justify-content: space-between;
 }
 
-.elements{
+.elements {
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
 }
 
-.elementsItem{
+.elementsItem {
   display: flex;
   flex-direction: row;
   gap: 10px;
@@ -112,12 +142,12 @@
   border-right: 1px solid #edeef0;
   cursor: pointer;
 
-  &:nth-child(3n){
+  &:nth-child(3n) {
     border-right: none;
   }
 }
 
-.actionsItem{
+.actionsItem {
   font-size: 14px;
   line-height: 150%;
   letter-spacing: 0.05em;
@@ -125,12 +155,12 @@
   padding: 15px 30px;
   cursor: pointer;
 
-  &:nth-child(1){
+  &:nth-child(1) {
     border-right: 1px solid #edeef0;
   }
 }
 
-.actions{
+.actions {
   display: flex;
   flex-direction: row;
 }

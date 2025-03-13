@@ -7,14 +7,30 @@ import React, {useState} from "react";
 import useSearch from "../../hooks/useSearch";
 import useModules from "../../hooks/api/modules/useModules";
 
+const API_URL = process.env.REACT_APP_API_URL;
 
 const MyModules = () => {
-    const { modules, loading, error } = useModules();
+    const { modules, loading, error, mutate } = useModules();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
+
+    const addModule = async () => {
+        try {
+            const response = await fetch(`${API_URL}/modules`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({title: "Новый модуль", content: [{type: "header", value: "Здесь будет ваш контент"}]}),
+            });
+
+            if (!response.ok) throw new Error("Ошибка добавления модуля");
+            if (response.ok) mutate();
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    }
 
     const filteredModules = useSearch(modules, query);
     const {currentElements, ...paginationProps} = usePagination(filteredModules);
@@ -25,7 +41,7 @@ const MyModules = () => {
     return (
         <div className={styles.container}>
             <BaseTitle title="Мои модули"
-                       button={<button className={styles.button}>Создать новый модуль</button>}
+                       button={<button className={styles.button} onClick={() => addModule()}>Создать новый модуль</button>}
             />
             <div className={styles.searchWrapper}>
                 <svg className={styles.searchIcon} xmlns="http://www.w3.org/2000/svg" width="21" height="20"
@@ -42,7 +58,7 @@ const MyModules = () => {
                     onChange={handleSearch}
                 />
             </div>
-            <div className={styles.gridLayout}>
+            <div className={styles.gridModulesLayout}>
                 {currentElements.map((module) => (
                     <ModuleCard key={module.id} module={module}/>
                 ))}
