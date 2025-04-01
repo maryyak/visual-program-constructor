@@ -4,13 +4,14 @@ import usePagination from "../../hooks/usePagination";
 import styles from "../MyDisciplines/MyDisciplines.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
 import Pagination from "../../components/Pagination/Pagination";
-import useStudyplans from "../../hooks/api/studyplans/useStudyplans";
 import StudyplanCard from "./components/StudyplanCard/StudyplanCard";
+import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
+import {getItemStorage} from "../../utils/localStorageAccess";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const MyStudyplans = () => {
-    const {studyplans, loading, error, mutate} = useStudyplans();
+    const {userStudyplans, loading, error, mutate} = useUserStudyplans();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
@@ -26,13 +27,29 @@ const MyStudyplans = () => {
             });
 
             if (!response.ok) throw new Error("Ошибка добавления учебного плана");
-            if (response.ok) mutate();
+            const studyplan = await response.json();
+            const token = getItemStorage("token");
+
+            // 2. Привязываем учебный план к текущему пользователю
+            const bindResponse = await fetch(`${API_URL}/user-studyplans/${studyplan.id}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!bindResponse.ok) {
+                throw new Error("Ошибка привязки учебного плана к пользователю");
+            }
+
+            if (bindResponse.ok) mutate();
         } catch (error) {
             console.error("Ошибка:", error);
         }
     }
 
-    const filteredStudyplans = useSearch(studyplans, query);
+    const filteredStudyplans = useSearch(userStudyplans, query);
     const {currentElements, ...paginationProps} = usePagination(filteredStudyplans);
 
     if (loading) return <p>Загрузка...</p>;

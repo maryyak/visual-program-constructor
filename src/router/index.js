@@ -8,6 +8,8 @@ import ViewDiscipline from "../pages/ViewDiscipline/ViewDiscipline";
 import EditStudyplan from "../pages/EditStudyplan/EditStudyplan";
 import MyStudyplans from "../pages/MyStudyplans/MyStudyplans";
 import ViewStudyplan from "../pages/ViewStudyplan/ViewStudyplan";
+import LoginPage from "../pages/LoginPage/LoginPage";
+import RegisterPage from "../pages/RegisterPage/RegisterPage";
 
 export const routes = [
     {
@@ -50,4 +52,12 @@ export const routes = [
         path: '/studyplan/:id',
         element: <ViewStudyplan />,
     },
+    {
+        path: '/login',
+        element: <LoginPage/>
+    },
+    {
+        path: '/register',
+        element: <RegisterPage/>
+    }
 ];

@@ -15,7 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "moduleId"
       });
       Module.belongsTo(models.Topic, { foreignKey: "topicId", onDelete: "SET NULL" });
+      Module.belongsToMany(models.User, {
+        through: models.UserModules,
+        foreignKey: "moduleId"
+      })
     }
+
   }
   Module.init({
     id: {

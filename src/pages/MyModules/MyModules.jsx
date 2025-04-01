@@ -5,12 +5,13 @@ import Pagination from "../../components/Pagination/Pagination";
 import usePagination from "../../hooks/usePagination";
 import React, {useState} from "react";
 import useSearch from "../../hooks/useSearch";
-import useModules from "../../hooks/api/modules/useModules";
+import useUserModules from "../../hooks/api/modules/useUserModules";
+import {getItemStorage} from "../../utils/localStorageAccess";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const MyModules = () => {
-    const { modules, loading, error, mutate } = useModules();
+    const { userModules, loading, error, mutate } = useUserModules();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
@@ -26,13 +27,29 @@ const MyModules = () => {
             });
 
             if (!response.ok) throw new Error("Ошибка добавления модуля");
-            if (response.ok) mutate();
+            const module = await response.json();
+            const token = getItemStorage("token");
+
+            // 2. Привязываем модуль к текущему пользователю
+            const bindResponse = await fetch(`${API_URL}/user-modules/${module.id}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!bindResponse.ok) {
+                throw new Error("Ошибка привязки модуля к пользователю");
+            }
+
+            if (bindResponse.ok) mutate();
         } catch (error) {
             console.error("Ошибка:", error);
         }
     }
 
-    const filteredModules = useSearch(modules, query);
+    const filteredModules = useSearch(userModules, query);
     const {currentElements, ...paginationProps} = usePagination(filteredModules);
 
     if (loading) return <p>Загрузка...</p>;

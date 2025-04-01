@@ -5,12 +5,13 @@ import styles from "./MyDisciplines.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
 import Pagination from "../../components/Pagination/Pagination";
 import DisciplineCard from "./components/DisciplineCard/DisciplineCard";
-import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
+import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
+import {getItemStorage} from "../../utils/localStorageAccess";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const MyDisciplines = () => {
-    const {disciplines, loading, error, mutate} = useDisciplines();
+    const {userDisciplines, loading, error, mutate} = useUserDisciplines();
 
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
@@ -26,13 +27,34 @@ const MyDisciplines = () => {
             });
 
             if (!response.ok) throw new Error("Ошибка добавления дисциплины");
-            if (response.ok) mutate();
+
+            const discipline = await response.json(); // Получаем данные о новой дисциплине
+            const token = getItemStorage("token");
+
+            // 2. Привязываем дисциплину к текущему пользователю
+            const bindResponse = await fetch(`${API_URL}/user-disciplines/${discipline.id}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!bindResponse.ok) {
+                throw new Error("Ошибка привязки дисциплины к пользователю");
+            }
+
+            if (bindResponse.ok) mutate();
+
+
         } catch (error) {
             console.error("Ошибка:", error);
         }
+
     }
 
-    const filteredModules = useSearch(disciplines, query);
+
+    const filteredModules = useSearch(userDisciplines, query);
     const {currentElements, ...paginationProps} = usePagination(filteredModules);
 
     if (loading) return <p>Загрузка...</p>;

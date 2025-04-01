@@ -3,16 +3,16 @@ import {useNavigate, useParams} from "react-router-dom";
 import styles from './EditModule.module.scss'
 import clsx from "clsx";
 import TopicEditor from "./components/TopicEditor/TopicEditor";
-import useModules from "../../hooks/api/modules/useModules";
 import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd";
 import Notification from "../../components/Notification/Notification";
+import useUserModules from "../../hooks/api/modules/useUserModules";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const EditModule = () => {
     const {id} = useParams();
-    const {modules, loading, error} = useModules();
-    const module = modules.find((mod) => mod.id === Number(id));
+    const {userModules, loading, error} = useUserModules();
+    const module = userModules.find((mod) => mod.id === Number(id));
     const [content, setContent] = useState(module?.content || []);
     const [title, setTitle] = useState(module?.title || "");
     const [showNotification, setShowNotification] = useState(false);

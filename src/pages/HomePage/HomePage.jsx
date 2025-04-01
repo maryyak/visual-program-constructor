@@ -1,18 +1,41 @@
 import React from 'react';
+import {useState, useEffect} from "react";
 import styles from "./HomePage.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
 import ModuleCard from "../MyModules/components/ModuleCard/ModuleCard";
-import {Link} from "react-router-dom";
-import useModules from "../../hooks/api/modules/useModules";
-import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
+import {Link, useNavigate} from "react-router-dom";
 import DisciplineCard from "../MyDisciplines/components/DisciplineCard/DisciplineCard";
-import useStudyplans from "../../hooks/api/studyplans/useStudyplans";
 import StudyplanCard from "../MyStudyplans/components/StudyplanCard/StudyplanCard";
+import {getItemStorage} from "../../utils/localStorageAccess";
+import useAuth from "../../hooks/api/users/authUser";
+import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
+import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
+import useUserModules from "../../hooks/api/modules/useUserModules";
 
 const HomePage = () => {
-    const { modules, loading: modulesLoading, error: modulesError } = useModules();
-    const { disciplines, loading: disciplinesLoading, error: disciplinesError } = useDisciplines();
-    const { studyplans, loading: studyplansLoading, error: studyplansError } = useStudyplans();
+    const { userModules, loading: modulesLoading, error: modulesError } = useUserModules();
+    const { userDisciplines, loading: disciplinesLoading, error: disciplinesError } = useUserDisciplines();
+    const { userStudyplans, loading: studyplansLoading, error: studyplansError } = useUserStudyplans();
+    const [authenticated, setAuthenticated] = useState(false); // состояние для проверки авторизации
+    const navigate = useNavigate(); // хук для перенаправления
+    const token = getItemStorage("token");
+    const username = getItemStorage("username");
+    const { logout } = useAuth();
+
+    useEffect(() => {
+        // Проверка токена при монтировании компонента
+        if (token) {
+            setAuthenticated(true); // если токен есть, считаем пользователя авторизованным
+        } else {
+            setAuthenticated(false)
+            navigate("/login");
+        }
+    }, [token]); // эффект срабатывает при изменении токена
+
+    // Если пользователь не авторизован, выводим сообщение о редиректе
+    if (!authenticated) {
+        return <div>Вы не авторизованы, перенаправляем на страницу авторизации...</div>;
+    }
 
     if (modulesLoading || disciplinesLoading || studyplansLoading) return <p>Загрузка...</p>;
     if (disciplinesError || modulesError || studyplansError) return <p style={{ color: "red" }}>Ошибка: {disciplinesError || modulesError}</p>;
@@ -23,11 +46,11 @@ const HomePage = () => {
                 <div className={styles.row}>
                     <span className={styles.avatar}></span>
                     <div className={styles.info}>
-                        <span className={styles.name}>Иванов Иван Иванович</span>
+                        <span className={styles.name}>{username ? username : "Гость"}</span>
                         <span className={styles.role}>Администратор</span>
                     </div>
                 </div>
-                <button className={styles.button}>Выйти</button>
+                <button className={styles.button} onClick={logout}>Выйти</button>
             </div>
             <div className={styles.group}>
                 <BaseTitle title="Мои модули" button={
@@ -48,7 +71,7 @@ const HomePage = () => {
                     </Link>
                 }/>
                 <div className={styles.gridModulesLayout}>
-                    {modules.slice(0, 4).map((module) => (
+                    {userModules.slice(0, 4).map((module) => (
                         <ModuleCard key={module.id} module={module}/>
                     ))}
                 </div>
@@ -73,7 +96,7 @@ const HomePage = () => {
                     </Link>
                 }/>
                 <div className={styles.gridLayout}>
-                    {disciplines.slice(0, 3).map((discipline) => (
+                    {userDisciplines.slice(0, 3).map((discipline) => (
                         <DisciplineCard key={discipline.id} discipline={discipline}/>
                     ))}
                 </div>
@@ -98,7 +121,7 @@ const HomePage = () => {
                     </Link>
                 }/>
                 <div className={styles.gridLayout}>
-                    {studyplans.slice(0, 3).map((studyplan) => (
+                    {userStudyplans.slice(0, 3).map((studyplan) => (
                         <StudyplanCard key={studyplan.id} studyplan={studyplan}/>
                     ))}
                 </div>

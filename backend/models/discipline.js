@@ -18,7 +18,10 @@ module.exports = (sequelize, DataTypes) => {
         through: models.StudyplanDisciplines,  // <- Указываем промежуточную таблицу
         foreignKey: "disciplineId"
       });
-
+      Discipline.belongsToMany(models.User, {
+        through: models.UserDisciplines,
+        foreignKey: "disciplineId"
+      })
     }
   }
   Discipline.init({

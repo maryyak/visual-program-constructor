@@ -3,22 +3,22 @@ import {useNavigate, useParams} from "react-router-dom";
 import styles from "./EditDiscipline.module.scss";
 import clsx from "clsx";
 import TopicViewer from "./components/TopicViewer/TopicViewer";
-import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 import useDisciplinesModules from "../../hooks/api/disciplines/useDisciplinesModules";
-import useModules from "../../hooks/api/modules/useModules";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import Notification from "../../components/Notification/Notification"
+import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
+import useUserModules from "../../hooks/api/modules/useUserModules";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const EditDiscipline = () => {
     const { id } = useParams();
-    const { disciplines, loading, error } = useDisciplines();
-    const discipline = disciplines.find((disc) => disc.id === Number(id));
+    const { userDisciplines, loading, error } = useUserDisciplines();
+    const discipline = userDisciplines.find((disc) => disc.id === Number(id));
     // Модули, которые уже входят в дисциплину (редактируются в разделе)
     const { modules: disciplineModulesFromAPI } = useDisciplinesModules(id);
     // Все доступные модули из блока с темами
-    const { modules: availableModules, loading: loadingAvailable } = useModules();
+    const { userModules: availableModules, loading: loadingAvailable } = useUserModules();
 
     const [title, setTitle] = useState(discipline?.title || "");
     const [description, setDescription] = useState(discipline?.description || "");
