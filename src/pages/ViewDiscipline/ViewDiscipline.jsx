@@ -1,7 +1,6 @@
 import React from 'react';
 import {useParams, useNavigate} from "react-router-dom";
 import styles from "./ViewDiscipline.module.scss";
-import clsx from "clsx";
 import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 import useDisciplinesModules from "../../hooks/api/disciplines/useDisciplinesModules";
 
@@ -18,17 +17,15 @@ const ViewDiscipline = () => {
     if (disciplinesError || modulesError) return <p style={{color: "red"}}>Ошибка: {disciplinesError}</p>;
 
     return (
-        <div>
-            <div className={clsx(styles.colContainer, styles.main)}>
+        <div className={styles.container}>
+            <div className={styles.content}>
                 <div className={styles.titleContainer}>
                     <h1>{discipline?.title}</h1>
                 </div>
                 <div className={styles.descriptionContainer}>
-                <span className={styles.heading}>Описание дисциплины:</span>
+                    <span className={styles.heading}>Описание дисциплины:</span>
                     <p>{discipline?.description}</p>
                 </div>
-            </div>
-            <div>
                 <div className={styles.contentContainer}>
                     <span className={styles.contentsHeading}>Модули</span>
                     {modules?.map((module) => (

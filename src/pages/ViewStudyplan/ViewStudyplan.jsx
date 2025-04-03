@@ -2,7 +2,6 @@ import React from 'react';
 import {useNavigate, useParams} from "react-router-dom";
 import useStudyplans from "../../hooks/api/studyplans/useStudyplans";
 import useStudyplansDisciplines from "../../hooks/api/studyplans/useStudyplansDisciplines";
-import clsx from "clsx";
 import styles from "../ViewDiscipline/ViewDiscipline.module.scss";
 import StudyplanDiscipline from "../EditStudyplan/components/StudyplanDiscipline/StudyplanDiscipline";
 
@@ -19,8 +18,8 @@ const ViewStudyplan = () => {
     if (disciplinesError || studyplansError) return <p style={{color: "red"}}>Ошибка: {disciplinesError}</p>;
 
     return (
-        <div>
-            <div className={clsx(styles.colContainer, styles.main)}>
+        <div className={styles.container}>
+            <div className={styles.content}>
                 <div className={styles.titleContainer}>
                     <h1>{studyplan?.title}</h1>
                 </div>
@@ -30,8 +29,6 @@ const ViewStudyplan = () => {
                     <span className={styles.heading}>Номер курса:</span>
                     <p>{studyplan?.courseNumber}</p>
                 </div>
-            </div>
-            <div>
                 <div className={styles.contentContainer}>
                     <span className={styles.contentsHeading}>Дисциплины</span>
                     <div className={styles.disciplineContainer}>
