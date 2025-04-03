@@ -1,0 +1,14 @@
+.colContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+
+  &.main {
+    width: 75%;
+    position: relative;
+  }
+
+  &.aside {
+    width: 100%;
+  }
+}
