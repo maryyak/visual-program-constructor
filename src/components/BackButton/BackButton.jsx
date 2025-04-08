@@ -7,7 +7,7 @@ const BackButton = () => {
 
     const canGoBack = location.key !== "default";
 
-    if (!canGoBack || location.pathname === "/login") {
+    if (!canGoBack || location.pathname === "/login" || location.pathname === "/register") {
         return null;
     }
 

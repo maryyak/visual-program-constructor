@@ -1,4 +1,4 @@
-.app{
+.app {
   max-width: 1180px;
   width: 100%;
   margin: 0 auto;
@@ -6,4 +6,24 @@
   display: flex;
   flex-direction: column;
   gap: 30px;
+  position: relative;
+}
+
+/* Когда боковая панель открыта, добавляем отступ слева */
+.app.sidebarOpen {
+  margin-left: 250px; /* Сдвигаем контент вправо на ширину панели */
+}
+
+.contentWrapper {
+  display: flex; /* Используем flexbox для контента и боковой панели */
+  gap: 30px;
+  position: relative;
+}
+
+.mainContent {
+  width: 100%; /* Основной контент будет занимать всю доступную ширину */
+}
+
+.sidebarContainer {
+  position: relative;
 }
