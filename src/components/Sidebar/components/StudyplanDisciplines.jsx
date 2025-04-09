@@ -44,8 +44,8 @@ const StudyplanDisciplines = ({ studyplan }) => {
                 <div>
                     {disciplines.map((discipline) => (
                         <div>
-                            <div key={discipline.id} className={styles.disciplineTitle} onDoubleClick={() => navigate(`/discipline/${discipline.id}`)}>
-                                <svg onClick={() => toggleDisciplineDropdown(discipline.id)}
+                            <div key={discipline.id} className={styles.disciplineTitle} onClick={() => toggleDisciplineDropdown(discipline.id)} onDoubleClick={() => navigate(`/discipline/${discipline.id}`)}>
+                                <svg
                                      style={{rotate: discipline.id ? "" : "90deg"}}
                                      width="5"
                                      height="10"

@@ -4,14 +4,36 @@ import useSearch from "../../../../hooks/useSearch";
 import useTopics from "../../../../hooks/api/topics/useTopics";
 import TopicWithModules from "./components/TopicWithModules/TopicWithModules";
 
-const TopicViewer = (disciplineModules) => {
+const TopicViewer = ({availableModules, disciplineModules}) => {
     const { topics, loading, error } = useTopics();
     const [query, setQuery] = useState("");
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
 
-    const currentElements = useSearch(topics, query);
+// ❌ Фильтрация — исключаем уже добавленные модули
+    const filteredModules = availableModules.filter(
+        (mod) => !disciplineModules.find((d) => d.id === mod.id)
+    );
+
+    const groupedByTopic = filteredModules.reduce((acc, module) => {
+        const topic = topics.find((topic) => topic.id === module.topicId);
+
+        if (topic) {
+            if (!acc[topic.id]) {
+                acc[topic.id] = { ...topic, modules: [] };
+            }
+            acc[topic.id].modules.push(module);
+        }
+
+        return acc;
+    }, {});
+
+    // Преобразуем объект в массив для отображения
+    const topicList = Object.values(groupedByTopic);
+
+    // 🔎 Поиск по названию темы
+    const currentElements = useSearch(topicList || [], query);
 
     if (loading) return <p>Загрузка...</p>;
     if (error) return <p style={{ color: "red" }}>Ошибка: {error}</p>;
@@ -37,7 +59,13 @@ const TopicViewer = (disciplineModules) => {
                 </div>
                 <div className={styles.topicsGroup}>
                     {currentElements.map((topic) => (
-                        <TopicWithModules key={topic.id} topic={topic} disciplineModules={disciplineModules} />
+                        topic.modules.length > 0 && (
+                            <TopicWithModules
+                                key={topic.id}
+                                topic={topic}
+                                modules={topic.modules}
+                            />
+                        )
                     ))}
                 </div>
             </div>

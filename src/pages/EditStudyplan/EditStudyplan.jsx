@@ -1,93 +1,105 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate, useParams} from "react-router-dom";
 import clsx from "clsx";
-import useDisciplines from "../../hooks/api/disciplines/useDisciplines";
 import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd";
-import useStudyplans from "../../hooks/api/studyplans/useStudyplans";
 import useStudyplansDisciplines from "../../hooks/api/studyplans/useStudyplansDisciplines";
 import styles from "./EditStudyplan.module.scss"
 import DisciplineViewer from "./components/DisciplineViewer/DisciplineViewer";
 import StudyplanDiscipline from "./components/StudyplanDiscipline/StudyplanDiscipline";
 import Notification from "../../components/Notification/Notification";
+import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
+import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const EditDiscipline = () => {
-    const {id} = useParams();
-    const {studyplans, loading, error} = useStudyplans();
-    const studyplan = studyplans.find((plan) => plan.id === Number(id));
-    const {disciplines: studyplanDisciplinesFromAPI} = useStudyplansDisciplines(id);
-    const {disciplines: availableDisciplinesAll, loading: loadingAvailable} = useDisciplines();
-    const [availableDisciplines, setAvailableDisciplines] = useState();
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { userStudyplans, loading, error } = useUserStudyplans();
+    const { disciplines: studyplanDisciplinesFromAPI } = useStudyplansDisciplines(id);
+    const { userDisciplines: availableDisciplinesAll, loading: loadingAvailable } = useUserDisciplines();
+    const studyplan = Array.isArray(userStudyplans)
+        ? userStudyplans.find((plan) => plan.id === Number(id))
+        : null;
 
+    console.log("studyplans:", userStudyplans);
+    console.log("studyplan:", studyplan);
+    console.log("availableDisciplinesAll:", availableDisciplinesAll);
+    console.log("studyplanDisciplinesFromAPI:", studyplanDisciplinesFromAPI);
+
+
+
+    const [availableDisciplines, setAvailableDisciplines] = useState([]);
     const [studyplanDisciplines, setStudyplanDisciplines] = useState([]);
-    // Сохраняем исходное состояние для сравнения при сохранении
     const [initialDisciplines, setInitialDisciplines] = useState([]);
 
-    const [title, setTitle] = useState(studyplan?.title || "");
-    const [description, setDescription] = useState(studyplan?.description || "");
-    const [course, setCourse] = useState(studyplan?.courseNumber || "");
-
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [course, setCourse] = useState("");
     const [showNotification, setNotification] = useState(false);
 
     useEffect(() => {
-        setAvailableDisciplines(availableDisciplinesAll.filter(mod =>
-            !(Array.isArray(studyplanDisciplines) ? studyplanDisciplines : []).some(dm => dm.id === mod.id)
-        ));
-    }, [studyplanDisciplines]);
+        if (studyplan) {
+            setTitle(studyplan.title || "");
+            setDescription(studyplan.description || "");
+            setCourse(studyplan.courseNumber || "");
+        }
+    }, [studyplan]);
 
-    // Инициализируем состояние, когда приходят данные с API
     useEffect(() => {
-        if (studyplanDisciplinesFromAPI) {
+        if (Array.isArray(studyplanDisciplinesFromAPI)) {
             setStudyplanDisciplines(studyplanDisciplinesFromAPI);
             setInitialDisciplines(studyplanDisciplinesFromAPI);
         }
     }, [studyplanDisciplinesFromAPI]);
 
     useEffect(() => {
-        setTitle(studyplan?.title || "");
-        setDescription(studyplan?.description || "");
-        setCourse(studyplan?.courseNumber || "")
-    }, [studyplan]);
+        if (Array.isArray(availableDisciplinesAll)) {
+            const filtered = availableDisciplinesAll.filter(mod =>
+                !studyplanDisciplines.some(dm => dm.id === mod.id)
+            );
+            setAvailableDisciplines(filtered);
+        }
+    }, [availableDisciplinesAll, studyplanDisciplines]);
 
-    // Обработчик завершения перетаскивания
     const onDragEnd = (result) => {
-        const {source, destination, draggableId} = result;
+        const { source, destination, draggableId } = result;
         if (!destination) return;
 
-        // Перестановка внутри дисциплины
         if (source.droppableId === "studyplanDisciplines" && destination.droppableId === "studyplanDisciplines") {
             const updatedModules = Array.from(studyplanDisciplines);
             const [removed] = updatedModules.splice(source.index, 1);
             updatedModules.splice(destination.index, 0, removed);
             setStudyplanDisciplines(updatedModules);
-        }
-        // Перетаскивание из темы в дисциплину
-        else if (source.droppableId === "availableDisciplines" && destination.droppableId === "studyplanDisciplines") {
+        } else if (
+            source.droppableId === "availableDisciplines" &&
+            destination.droppableId === "studyplanDisciplines"
+        ) {
             const moduleToAdd = availableDisciplines.find(
                 (mod) => String(mod.id) === draggableId.replace("discipline-", "")
             );
             if (!moduleToAdd) return;
-            setStudyplanDisciplines(prevModules => {
-                if (!prevModules.find(mod => mod.id === moduleToAdd.id)) {
-                    const newModules = Array.from(prevModules);
+            setStudyplanDisciplines(prev => {
+                if (!prev.find(mod => mod.id === moduleToAdd.id)) {
+                    const newModules = Array.from(prev);
                     newModules.splice(destination.index, 0, moduleToAdd);
                     return newModules;
                 }
-                return prevModules;
+                return prev;
             });
-        }
-        // Перетаскивание из дисциплины обратно в тему (удаление)
-        else if (source.droppableId === "studyplanDisciplines" && destination.droppableId === "availableDisciplines") {
-            setStudyplanDisciplines(prevModules =>
-                prevModules.filter(mod => String(mod.id) !== draggableId.replace("discipline-", ""))
+        } else if (
+            source.droppableId === "studyplanDisciplines" &&
+            destination.droppableId === "availableDisciplines"
+        ) {
+            setStudyplanDisciplines(prev =>
+                prev.filter(mod => String(mod.id) !== draggableId.replace("discipline-", ""))
             );
         }
     };
 
     const handleDisciplineRemove = (discipline) => {
-        setStudyplanDisciplines(prevDisciplines =>
-            prevDisciplines.filter(disc => disc.id !== discipline.id)
+        setStudyplanDisciplines(prev =>
+            prev.filter(disc => disc.id !== discipline.id)
         );
     };
 
@@ -102,16 +114,16 @@ const EditDiscipline = () => {
 
             await fetch(`${API_URL}/studyplans/${id}`, {
                 method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({title, description, courseNumber: course})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description, courseNumber: course })
             });
 
             for (let disc of addedDisciplines) {
                 const order = studyplanDisciplines.findIndex(item => item.id === disc.id);
                 await fetch(`${API_URL}/studyplans/${id}/disciplines`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({disciplineId: disc.id, order})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ disciplineId: disc.id, order })
                 });
             }
 
@@ -125,36 +137,34 @@ const EditDiscipline = () => {
                 const disc = studyplanDisciplines[i];
                 await fetch(`${API_URL}/studyplans/${id}/disciplines/${disc.id}`, {
                     method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({order: i})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: i })
                 });
             }
-            // Обновляем исходное состояние
+
             setInitialDisciplines([...studyplanDisciplines]);
-            setNotification(true)
+            setNotification(true);
         } catch (error) {
             console.error('Ошибка сохранения:', error);
         }
     };
 
-    const navigate = useNavigate();
-
     const deleteModule = async () => {
         try {
-            const response = await fetch(`${API_URL}/studyplans/${studyplan.id}`, {
+            const response = await fetch(`${API_URL}/studyplans/${studyplan?.id}`, {
                 method: "DELETE",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
             });
 
             if (!response.ok) throw new Error("Ошибка удаления учебного плана");
-            if (response.ok) navigate('/my-studyplans');
+            navigate('/my-studyplans');
         } catch (error) {
             console.error("Ошибка:", error);
         }
-    }
+    };
 
     if (loading || loadingAvailable) return <p>Загрузка...</p>;
-    if (error) return <p style={{color: "red"}}>Ошибка: {error}</p>;
+    if (error) return <p style={{ color: "red" }}>Ошибка: {error}</p>;
 
     return (
         <>

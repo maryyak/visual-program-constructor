@@ -24,7 +24,7 @@ const ViewStudyplan = () => {
                     <h1>{studyplan?.title}</h1>
                 </div>
                 <div className={styles.descriptionContainer}>
-                    <span className={styles.heading}>Описание дисциплины:</span>
+                    <span className={styles.heading}>Описание учебного плана:</span>
                     <p>{studyplan?.description}</p>
                     <span className={styles.heading}>Номер курса:</span>
                     <p>{studyplan?.courseNumber}</p>

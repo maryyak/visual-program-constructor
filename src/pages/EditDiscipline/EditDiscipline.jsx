@@ -159,7 +159,7 @@ const EditDiscipline = () => {
         <DragDropContext onDragEnd={onDragEnd}>
             <div className={styles.page}>
                 <div className={clsx(styles.colContainer, styles.aside)}>
-                    <TopicViewer disciplineModules={disciplineModules}/>
+                    <TopicViewer availableModules={availableModules} disciplineModules={disciplineModules}/>
                     <div onClick={() => deleteModule()} className={styles.deleteBtn}>Удалить дисциплину</div>
                 </div>
                 <div className={clsx(styles.colContainer, styles.main)}>

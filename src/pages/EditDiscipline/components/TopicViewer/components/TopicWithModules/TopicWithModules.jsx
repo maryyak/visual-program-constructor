@@ -1,16 +1,10 @@
 import {useState} from "react";
 import {Draggable, Droppable} from "@hello-pangea/dnd";
 import styles from "./TopicWithModules.module.scss";
-import useTopicsModules from "../../../../../../hooks/api/topics/useTopicsModules";
 
-const TopicWithModules = ({topic, disciplineModules}) => {
-    const {modules, loading, error} = useTopicsModules(topic.id);
+const TopicWithModules = ({topic, modules}) => {
 
     const [showModules, setShowModules] = useState(true);
-
-    const filteredModules = modules.filter(mod =>
-        !(Array.isArray(disciplineModules?.disciplineModules) ? disciplineModules.disciplineModules : []).some(dm => dm.id === mod.id)
-    );
 
     return (
         <div className={styles.topic} id={topic.id} key={topic.id}>
@@ -29,34 +23,28 @@ const TopicWithModules = ({topic, disciplineModules}) => {
             </div>
             {showModules &&
                 <div>
-                    {loading && <p>Загрузка модулей...</p>}
-                    {error && <p style={{color: "red"}}>Ошибка: {error}</p>}
-                    {!loading && !error && filteredModules.length > 0 ? (
-                        <Droppable droppableId="topicModules">
-                            {(provided) => (
-                                <div ref={provided.innerRef} {...provided.droppableProps}
-                                     className={styles.topicModules}>
-                                    {filteredModules.map((mod, index) => (
-                                        <Draggable key={mod.id} draggableId={`module-${mod.id}`} index={index}>
-                                            {(provided) => (
-                                                <div
-                                                    className={styles.module}
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                >
-                                                    {mod.title || mod.name}
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
-                        </Droppable>
-                    ) : (
-                        !loading && !error && <p>Нет модулей для этой темы</p>
-                    )}
+                    <Droppable droppableId="topicModules">
+                        {(provided) => (
+                            <div ref={provided.innerRef} {...provided.droppableProps}
+                                 className={styles.topicModules}>
+                                {modules.map((mod, index) => (
+                                    <Draggable key={mod.id} draggableId={`module-${mod.id}`} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                className={styles.module}
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                            >
+                                                {mod.title || mod.name}
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
                 </div>
             }
         </div>
