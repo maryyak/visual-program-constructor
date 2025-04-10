@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getItemStorage } from "../../../utils/localStorageAccess";
+import {isTokenValid} from "../../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -8,6 +9,7 @@ const useUserStudyplans = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const token = getItemStorage("token");
+    isTokenValid();
 
     // Получение учебных планов, принадлежащих пользователю
     const fetchUserStudyplans = async () => {

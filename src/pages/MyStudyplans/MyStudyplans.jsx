@@ -7,6 +7,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import StudyplanCard from "./components/StudyplanCard/StudyplanCard";
 import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
 import {getItemStorage} from "../../utils/localStorageAccess";
+import {isTokenValid} from "../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -29,6 +30,7 @@ const MyStudyplans = () => {
             if (!response.ok) throw new Error("Ошибка добавления учебного плана");
             const studyplan = await response.json();
             const token = getItemStorage("token");
+            isTokenValid();
 
             // 2. Привязываем учебный план к текущему пользователю
             const bindResponse = await fetch(`${API_URL}/user-studyplans/${studyplan.id}`, {

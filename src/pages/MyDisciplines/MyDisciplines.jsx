@@ -7,6 +7,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import DisciplineCard from "./components/DisciplineCard/DisciplineCard";
 import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
 import {getItemStorage} from "../../utils/localStorageAccess";
+import {isTokenValid} from "../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -30,6 +31,7 @@ const MyDisciplines = () => {
 
             const discipline = await response.json(); // Получаем данные о новой дисциплине
             const token = getItemStorage("token");
+            isTokenValid();
 
             // 2. Привязываем дисциплину к текущему пользователю
             const bindResponse = await fetch(`${API_URL}/user-disciplines/${discipline.id}`, {

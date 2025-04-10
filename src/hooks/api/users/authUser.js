@@ -50,7 +50,11 @@ const useAuth = () => {
             }
 
             console.log("Пользователь авторизирован:", data);
+            const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
+            const tokenExp = tokenPayload.exp * 1000; // переводим в миллисекунды
+
             setItemStorage('token', data.token);
+            setItemStorage('token_exp', tokenExp);
             setItemStorage('username', data.user.username)
 
             return data.user;

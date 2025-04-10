@@ -7,6 +7,7 @@ import React, {useState} from "react";
 import useSearch from "../../hooks/useSearch";
 import useUserModules from "../../hooks/api/modules/useUserModules";
 import {getItemStorage} from "../../utils/localStorageAccess";
+import {isTokenValid} from "../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -29,6 +30,7 @@ const MyModules = () => {
             if (!response.ok) throw new Error("Ошибка добавления модуля");
             const module = await response.json();
             const token = getItemStorage("token");
+            isTokenValid();
 
             // 2. Привязываем модуль к текущему пользователю
             const bindResponse = await fetch(`${API_URL}/user-modules/${module.id}`, {

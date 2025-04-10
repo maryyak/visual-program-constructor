@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getItemStorage } from "../../../utils/localStorageAccess";
+import {isTokenValid} from "../../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -8,6 +9,7 @@ const useUserModules = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const token = getItemStorage("token");
+    isTokenValid();
 
     // Получение модулей, принадлежащих пользователю
     const fetchUserModules = async () => {

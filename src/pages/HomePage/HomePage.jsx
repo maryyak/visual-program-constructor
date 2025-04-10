@@ -11,16 +11,18 @@ import useAuth from "../../hooks/api/users/authUser";
 import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
 import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
 import useUserModules from "../../hooks/api/modules/useUserModules";
+import {isTokenValid} from "../../utils/isTokenValid";
 
 const HomePage = () => {
-    const { userModules, loading: modulesLoading, error: modulesError } = useUserModules();
-    const { userDisciplines, loading: disciplinesLoading, error: disciplinesError } = useUserDisciplines();
-    const { userStudyplans, loading: studyplansLoading, error: studyplansError } = useUserStudyplans();
+    const {userModules, loading: modulesLoading, error: modulesError} = useUserModules();
+    const {userDisciplines, loading: disciplinesLoading, error: disciplinesError} = useUserDisciplines();
+    const {userStudyplans, loading: studyplansLoading, error: studyplansError} = useUserStudyplans();
     const [authenticated, setAuthenticated] = useState(false); // состояние для проверки авторизации
     const navigate = useNavigate(); // хук для перенаправления
     const token = getItemStorage("token");
+    isTokenValid();
     const username = getItemStorage("username");
-    const { logout } = useAuth();
+    const {logout} = useAuth();
 
     useEffect(() => {
         // Проверка токена при монтировании компонента
@@ -38,7 +40,8 @@ const HomePage = () => {
     }
 
     if (modulesLoading || disciplinesLoading || studyplansLoading) return <p>Загрузка...</p>;
-    if (disciplinesError || modulesError || studyplansError) return <p style={{ color: "red" }}>Ошибка: {disciplinesError || modulesError}</p>;
+    if (disciplinesError || modulesError || studyplansError) return <p
+        style={{color: "red"}}>Ошибка: {disciplinesError || modulesError}</p>;
 
     return (
         <div className={styles.container}>
