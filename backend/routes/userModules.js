@@ -21,16 +21,17 @@ router.get("/", authMiddleware, async (req, res) => {
 router.post("/:moduleId", authMiddleware, async (req, res) => {
     try {
         const { moduleId } = req.params;
+        const { userId } = req.body;
 
         const existingEntry = await UserModules.findOne({
-            where: { userId: req.user.id, moduleId }
+            where: { userId, moduleId }
         });
 
         if (existingEntry) {
             return res.status(400).json({ error: "Пользователь уже привязан к этому модулю" });
         }
 
-        const newEntry = await UserModules.create({ userId: req.user.id, moduleId });
+        const newEntry = await UserModules.create({ userId, moduleId });
 
         res.status(201).json(newEntry);
     } catch (error) {
@@ -38,7 +39,7 @@ router.post("/:moduleId", authMiddleware, async (req, res) => {
     }
 });
 
-// 📌 Отвязать пользователя от модуля
+// Отвязать пользователя от модуля
 router.delete("/:moduleId", authMiddleware, async (req, res) => {
     try {
         const { moduleId } = req.params;

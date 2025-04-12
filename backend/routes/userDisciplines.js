@@ -1,9 +1,9 @@
 const express = require("express");
-const { UserDisciplines, Discipline } = require("../models");
+const { UserDisciplines, Discipline, DisciplineModules, UserModules} = require("../models");
 const { authMiddleware } = require("../routes/users");
 const router = express.Router();
 
-// 📌 Получить список дисциплин, привязанных к пользователю
+//Получить список дисциплин, привязанных к пользователю
 router.get("/", authMiddleware, async (req, res) => {
     try {
         const userDisciplines = await UserDisciplines.findAll({
@@ -17,19 +17,37 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 });
 
-// 📌 Привязать пользователя к дисциплине
+// Привязать пользователя к дисциплине
 router.post("/:disciplineId", authMiddleware, async (req, res) => {
     try {
         const { disciplineId } = req.params;
+        const {userId} = req.body;
 
         const existingEntry = await UserDisciplines.findOne({
-            where: { userId: req.user.id, disciplineId }
+            where: { userId, disciplineId }
         });
 
         if (existingEntry) {
             return res.status(400).json({ error: "Пользователь уже привязан к этой дисциплине" });
         }
-        const newEntry = await UserDisciplines.create({ userId: req.user.id, disciplineId });
+        const newEntry = await UserDisciplines.create({ userId, disciplineId });
+
+        const disciplineModules = await DisciplineModules.findAll({
+            where: { disciplineId }
+        })
+
+        for (const module of disciplineModules) {
+            const moduleId = module.moduleId;
+
+            // Привязка пользователя к модулю
+            const existingModuleEntry = await UserModules.findOne({
+                where: { userId, moduleId }
+            });
+
+            if (!existingModuleEntry) {
+                await UserModules.create({ userId, moduleId });
+            }
+        }
 
         res.status(201).json(newEntry);
     } catch (error) {
@@ -37,7 +55,7 @@ router.post("/:disciplineId", authMiddleware, async (req, res) => {
     }
 });
 
-// 📌 Отвязать пользователя от дисциплины
+// Отвязать пользователя от дисциплины
 router.delete("/:disciplineId", authMiddleware, async (req, res) => {
     try {
         const { disciplineId } = req.params;

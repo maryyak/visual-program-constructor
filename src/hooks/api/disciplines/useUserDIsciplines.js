@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import {getItemStorage} from "../../../utils/localStorageAccess";
-import {isTokenValid} from "../../../utils/isTokenValid";
+import { isTokenValid } from "../../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -8,7 +7,7 @@ const useUserDisciplines = () => {
     const [userDisciplines, setUserDisciplines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const token = getItemStorage("token");
+    // Проверка на валидность токена (если необходимо)
     isTokenValid();
 
     // Получение дисциплин, принадлежащих пользователю
@@ -16,12 +15,17 @@ const useUserDisciplines = () => {
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/user-disciplines`, {
-                headers: { Authorization: `Bearer ${token}` },
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",  // Это важно: куки будут автоматически отправляться с запросом
             });
 
-            if (!response.ok) throw new Error("Ошибка загрузки дисциплин пользователя");
             const data = await response.json();
+            if (!response.ok) throw new Error("Ошибка загрузки дисциплин пользователя");
             setUserDisciplines(data);
+
         } catch (err) {
             setError(err.message);
         } finally {
@@ -29,12 +33,11 @@ const useUserDisciplines = () => {
         }
     };
 
-
     useEffect(() => {
-        if (token) fetchUserDisciplines();
-    }, [token]);
+        fetchUserDisciplines();  // Вызываем fetch, когда компонент монтируется
+    }, []); // Не зависим от token, т.к. куки будут автоматически передаваться
 
-    return {userDisciplines, loading, error, mutate: fetchUserDisciplines};
+    return { userDisciplines, loading, error, mutate: fetchUserDisciplines };
 };
 
 export default useUserDisciplines;

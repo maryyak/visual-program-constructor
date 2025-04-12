@@ -12,9 +12,9 @@ const LoginPage = () => {
 
     useEffect(() => {
         if (user) {
-            navigate("/"); // Перенаправляем на домашнюю страницу после успешного логина
+            navigate("/");
         }
-    }, [user]);
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

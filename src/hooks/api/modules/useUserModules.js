@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { getItemStorage } from "../../../utils/localStorageAccess";
-import {isTokenValid} from "../../../utils/isTokenValid";
+import { isTokenValid } from "../../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -8,15 +7,20 @@ const useUserModules = () => {
     const [userModules, setUserModules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const token = getItemStorage("token");
+
+    // Проверка на валидность токена (если необходимо)
     isTokenValid();
 
-    // Получение модулей, принадлежащих пользователю
+    // Получение модулей
     const fetchUserModules = async () => {
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/user-modules`, {
-                headers: { Authorization: `Bearer ${token}` },
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",  // Это важно: куки будут автоматически отправляться с запросом
             });
 
             if (!response.ok) throw new Error("Ошибка загрузки модулей пользователя");
@@ -30,8 +34,8 @@ const useUserModules = () => {
     };
 
     useEffect(() => {
-        if (token) fetchUserModules();
-    }, [token]);
+        fetchUserModules();  // Вызываем fetch, когда компонент монтируется
+    }, []);
 
     return { userModules, loading, error, mutate: fetchUserModules };
 };

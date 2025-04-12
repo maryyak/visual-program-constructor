@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { getItemStorage } from "../../../utils/localStorageAccess";
-import {isTokenValid} from "../../../utils/isTokenValid";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -8,18 +6,22 @@ const useUserStudyplans = () => {
     const [userStudyplans, setUserStudyplans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const token = getItemStorage("token");
-    isTokenValid();
+
 
     // Получение учебных планов, принадлежащих пользователю
     const fetchUserStudyplans = async () => {
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/user-studyplans`, {
-                headers: { Authorization: `Bearer ${token}` },
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",  // Это важно: куки будут автоматически отправляться с запросом
             });
 
             if (!response.ok) throw new Error("Ошибка загрузки учебных планов пользователя");
+
             const data = await response.json();
             setUserStudyplans(data);
         } catch (err) {
@@ -30,8 +32,8 @@ const useUserStudyplans = () => {
     };
 
     useEffect(() => {
-        if (token) fetchUserStudyplans();
-    }, [token]);
+        fetchUserStudyplans();  // Вызываем fetch, когда компонент монтируется
+    }, []);
 
     return { userStudyplans, loading, error, mutate: fetchUserStudyplans };
 };

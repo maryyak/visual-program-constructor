@@ -6,12 +6,10 @@ import ModuleCard from "../MyModules/components/ModuleCard/ModuleCard";
 import {Link, useNavigate} from "react-router-dom";
 import DisciplineCard from "../MyDisciplines/components/DisciplineCard/DisciplineCard";
 import StudyplanCard from "../MyStudyplans/components/StudyplanCard/StudyplanCard";
-import {getItemStorage} from "../../utils/localStorageAccess";
 import useAuth from "../../hooks/api/users/authUser";
 import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
 import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
 import useUserModules from "../../hooks/api/modules/useUserModules";
-import {isTokenValid} from "../../utils/isTokenValid";
 
 const HomePage = () => {
     const {userModules, loading: modulesLoading, error: modulesError} = useUserModules();
@@ -19,20 +17,27 @@ const HomePage = () => {
     const {userStudyplans, loading: studyplansLoading, error: studyplansError} = useUserStudyplans();
     const [authenticated, setAuthenticated] = useState(false); // состояние для проверки авторизации
     const navigate = useNavigate(); // хук для перенаправления
-    const token = getItemStorage("token");
-    isTokenValid();
-    const username = getItemStorage("username");
-    const {logout} = useAuth();
+    const [user, setUser] = useState(null);
+    const { logout, checkAuth } = useAuth();
+    console.log("Дисциплины:",userDisciplines)
+    console.log("Модули:",userModules)
+    console.log("Планы:",userStudyplans)
 
     useEffect(() => {
-        // Проверка токена при монтировании компонента
-        if (token) {
-            setAuthenticated(true); // если токен есть, считаем пользователя авторизованным
-        } else {
-            setAuthenticated(false)
-            navigate("/login");
-        }
-    }, [token]); // эффект срабатывает при изменении токена
+        const verifyUser = async () => {
+            const userData = await checkAuth();
+            if (userData) {
+                setUser(userData);
+                setAuthenticated(true);
+
+            } else {
+                setAuthenticated(false);
+                navigate("/login");
+            }
+        };
+
+        verifyUser();
+    }, []);
 
     // Если пользователь не авторизован, выводим сообщение о редиректе
     if (!authenticated) {
@@ -49,7 +54,7 @@ const HomePage = () => {
                 <div className={styles.row}>
                     <span className={styles.avatar}></span>
                     <div className={styles.info}>
-                        <span className={styles.name}>{username ? username : "Гость"}</span>
+                        <span className={styles.name}>{user?.username || "Гость"}</span>
                         <span className={styles.role}>Администратор</span>
                     </div>
                 </div>
