@@ -6,6 +6,7 @@ import TopicEditor from "./components/TopicEditor/TopicEditor";
 import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd";
 import Notification from "../../components/Notification/Notification";
 import useUserModules from "../../hooks/api/modules/useUserModules";
+import authUser from "../../hooks/api/users/authUser";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -13,9 +14,20 @@ const EditModule = () => {
     const {id} = useParams();
     const {userModules, loading, error} = useUserModules();
     const module = userModules.find((mod) => mod.id === Number(id));
+
     const [content, setContent] = useState(module?.content || []);
     const [title, setTitle] = useState(module?.title || "");
-    const [showNotification, setShowNotification] = useState(false);
+
+    const [showNotification, setNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
+
+    const { users } = authUser();
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const userArray = users?.users || [];
+
+    const [filteredUsers, setFilteredUsers] = useState(userArray);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     const navigate = useNavigate();
 
@@ -36,6 +48,56 @@ const EditModule = () => {
 
     const imageInputRef = useRef(null);
 
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+
+        if (Array.isArray(userArray)) {
+            const filteredUsers = userArray.filter(user =>
+                user.username.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredUsers(filteredUsers);
+            console.log('Отфильтрованные пользователи:', filteredUsers);
+        } else {
+            console.error('Ошибка: users не является массивом', userArray);
+        }
+    };
+
+    const handleUserClick = (user) => {
+        setSelectedUser(user);
+    };
+
+    const handleGiveAccess = async (user, moduleId) => {
+        try {
+            const response = await fetch(`${API_URL}/user-modules/${moduleId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    userId: user.id,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const message = data.error || 'Ошибка при выдаче доступа';
+                setNotificationMessage(message);
+                setNotification(true);
+                throw new Error(message);
+            }
+
+            console.log('Права доступа успешно выданы:', data);
+            setNotificationMessage(`Пользователь ${user.username} получил доступ к модулю`);
+            setNotification(true);
+
+        } catch (err) {
+            console.error('Ошибка:', err);
+        }
+    };
+
     const handleImageInputClick = () => {
         imageInputRef.current?.click();
     };
@@ -47,7 +109,7 @@ const EditModule = () => {
     };
 
     const uploadFile = (event, type) => {
-        const file = event.target.files[0]; // Получаем первый выбранный файл
+        const file = event.target.files[0];
         if (!file) return;
 
         const formData = new FormData();
@@ -87,9 +149,21 @@ const EditModule = () => {
                 body: JSON.stringify({content, title}),
             });
 
-            if (!response.ok) throw new Error("Ошибка обновления модуля");
+            const data = await response.json();
 
-            if (response.ok) setShowNotification(true);
+
+            if (!response.ok) {
+                const message = data.error || 'Ошибка при сохранении модуля';
+                setNotificationMessage(message);
+                setNotification(true);
+                throw new Error(message);
+
+            }
+
+            if (response.ok){
+                setNotificationMessage(`Модуль успешно обновлён!`);
+                setNotification(true);
+            }
 
         } catch (error) {
             console.error("Ошибка:", error);
@@ -126,18 +200,47 @@ const EditModule = () => {
     return (
         <div className={styles.page}>
             <div className={clsx(styles.colContainer, styles.aside)}>
-                <TopicEditor module={module}/>
-                <div className={styles.contents}>
-                    <span className={styles.contentsHeading}>Оглавление</span>
-                    {module?.content
-                        .map((item, index) => item.type === "header" && ({...item, index}))
-                        .filter(Boolean)
-                        .map(({value, index}) => (
-                            <button className={styles.contentsItem} key={index}
-                                    onClick={() => handleScrollTo(index)}>{value}</button>
-                        ))}
+                <div className={styles.sideContainer}>
+                    <TopicEditor module={module}/>
+                    <div className={styles.contents}>
+                        <span className={styles.contentsHeading}>Оглавление</span>
+                        {module?.content
+                            .map((item, index) => item.type === "header" && ({...item, index}))
+                            .filter(Boolean)
+                            .map(({value, index}) => (
+                                <button className={styles.contentsItem} key={index}
+                                        onClick={() => handleScrollTo(index)}>{value}</button>
+                            ))}
+                    </div>
+                    <div className={styles.searchСontainer}>
+                        <input
+                            type="text"
+                            placeholder="Поиск пользователя..."
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                        />
+                        {searchQuery && (
+                            <ul>
+                                {filteredUsers?.map(user => (
+                                    <li
+                                        key={user.id}
+                                        onClick={() => handleUserClick(user)} // Устанавливаем выбранного пользователя
+                                        style={{cursor: "pointer"}} // Сделаем курсор как "указатель"
+                                    >
+                                        {user.username}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <button
+                            onClick={() => selectedUser && handleGiveAccess(selectedUser, module.id)} // Отправляем выбранного пользователя
+                            disabled={!selectedUser} // Если пользователь не выбран, кнопка будет отключена
+                        >
+                            Открыть доступ к дисциплине
+                        </button>
+                    </div>
+                    <div onClick={() => deleteModule()} className={styles.deleteButton}>Удалить модуль</div>
                 </div>
-                <div onClick={() => deleteModule()} className={styles.deleteButton}>Удалить модуль</div>
             </div>
             <div className={clsx(styles.colContainer, styles.main)}>
                 <div className={styles.titleContainer}>
@@ -348,8 +451,8 @@ const EditModule = () => {
                             Сохранить изменения
                             {showNotification && (
                                 <Notification
-                                    message="Модуль успешно обновлён!"
-                                    onClose={() => setShowNotification(false)}
+                                    message={notificationMessage}
+                                    onClose={() => setNotification(false)}
                                 />
                             )}
                         </div>

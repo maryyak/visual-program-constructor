@@ -1,12 +1,27 @@
-import { useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import {removeItemStorage, setItemStorage} from "../../../utils/localStorageAccess";
+import {useEffect, useState} from 'react';
+import {useLocation, useNavigate} from "react-router-dom";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const useAuth = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const [users, setUsers] = useState(null);
+    const location = useLocation();
+
+    const checkAuth = async () => {
+        try {
+            const response = await fetch(`${API_URL}/users/profile`, {
+                credentials: 'include',
+            });
+            if (!response.ok) throw new Error("Не авторизован");
+            const data = await response.json();
+            return data.user;
+        } catch (err) {
+            return null;
+        }
+    };
+
 
     const register = async (username, password, login) => {
         setLoading(true);
@@ -14,6 +29,7 @@ const useAuth = () => {
             const response = await fetch(`${API_URL}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // важно для куков
                 body: JSON.stringify({ username, password, login }),
             });
 
@@ -24,7 +40,7 @@ const useAuth = () => {
                 throw new Error(data.message || 'Ошибка регистрации');
             }
 
-            console.log("Пользователь зарегистрирован:", data);  // Логируем данные ответа
+            console.log("Пользователь зарегистрирован:", data);
             return data;
         } catch (err) {
             setError(err.message);
@@ -33,13 +49,13 @@ const useAuth = () => {
         }
     };
 
-    // Функция для логина пользователя
     const login = async (username, password) => {
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/users/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // важно для куков
                 body: JSON.stringify({ username, password }),
             });
 
@@ -49,14 +65,7 @@ const useAuth = () => {
                 throw new Error(data.message || 'Ошибка авторизации');
             }
 
-            console.log("Пользователь авторизирован:", data);
-            const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
-            const tokenExp = tokenPayload.exp * 1000; // переводим в миллисекунды
-
-            setItemStorage('token', data.token);
-            setItemStorage('token_exp', tokenExp);
-            setItemStorage('username', data.user.username)
-
+            console.log("Пользователь авторизован:", data);
             return data.user;
         } catch (err) {
             setError(err.message);
@@ -65,13 +74,52 @@ const useAuth = () => {
         }
     };
 
-    const logout = () => {
-        removeItemStorage("token"); // Удаляем токен
-        removeItemStorage("username"); // Удаляем имя пользователя
-        navigate("/login"); // Перенаправляем на страницу логина
+    const logout = async () => {
+        try {
+            await fetch(`${API_URL}/users/logout`, {
+                method: 'POST',
+                credentials: 'include' // отправляем куки
+            });
+        } catch (err) {
+            console.error("Ошибка при выходе:", err);
+        } finally {
+            navigate("/login");
+        }
     };
 
-    return { register, login, logout, loading, error };
+    const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/users`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error("Ошибка загрузки данных пользователей");
+            setUsers(data);
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        // Проверяем, находимся ли мы на странице логина или регистрации
+        if (location.pathname === "/login" || location.pathname === "/register") {
+            return;  // Если да, пропускаем вызов fetchUsers
+        }
+
+        // Если мы не на странице логина или регистрации, выполняем fetch
+        fetchUsers();
+    }, [location]);
+
+    return { users, register, login, logout, checkAuth, loading, error };
 };
 
 export default useAuth;

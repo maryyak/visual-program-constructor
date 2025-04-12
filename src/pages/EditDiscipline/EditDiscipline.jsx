@@ -8,6 +8,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import Notification from "../../components/Notification/Notification"
 import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
 import useUserModules from "../../hooks/api/modules/useUserModules";
+import authUser from "../../hooks/api/users/authUser";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -15,24 +16,29 @@ const EditDiscipline = () => {
     const { id } = useParams();
     const { userDisciplines, loading, error } = useUserDisciplines();
     const discipline = userDisciplines.find((disc) => disc.id === Number(id));
-    // Модули, которые уже входят в дисциплину (редактируются в разделе)
+
     const { modules: disciplineModulesFromAPI } = useDisciplinesModules(id);
-    // Все доступные модули из блока с темами
     const { userModules: availableModules, loading: loadingAvailable } = useUserModules();
+
+    const { users } = authUser();
 
     const [title, setTitle] = useState(discipline?.title || "");
     const [description, setDescription] = useState(discipline?.description || "");
 
-    // Локальное состояние для модулей, включённых в дисциплину
     const [disciplineModules, setDisciplineModules] = useState([]);
-    // Сохраняем исходное состояние для сравнения при сохранении
     const [initialModules, setInitialModules] = useState([]);
 
     const [showNotification, setNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const userArray = users?.users || [];
+
+    const [filteredUsers, setFilteredUsers] = useState(userArray);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     const navigate = useNavigate();
 
-    // Инициализируем состояние, когда приходят данные с API
     useEffect(() => {
         if (disciplineModulesFromAPI) {
             setDisciplineModules(disciplineModulesFromAPI);
@@ -45,7 +51,26 @@ const EditDiscipline = () => {
         setDescription(discipline?.description || "");
     }, [discipline]);
 
-    // Обработчик завершения перетаскивания
+    // Обработчик поиска пользователей
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+
+        if (Array.isArray(userArray)) {
+            const filteredUsers = userArray.filter(user =>
+                user.username.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredUsers(filteredUsers);
+            console.log('Отфильтрованные пользователи:', filteredUsers);
+        } else {
+            console.error('Ошибка: users не является массивом', userArray);
+        }
+    };
+
+    const handleUserClick = (user) => {
+        setSelectedUser(user);
+    };
+
     const onDragEnd = (result) => {
         const { source, destination, draggableId } = result;
         if (!destination) return;
@@ -84,6 +109,37 @@ const EditDiscipline = () => {
         setDisciplineModules(prevModules =>
             prevModules.filter(mod => mod.id !== module.id)
         );
+    };
+
+    // Функция выдачи прав доступа
+    const handleGiveAccess = async (user, disciplineId) => {
+        try {
+            const response = await fetch(`${API_URL}/user-disciplines/${disciplineId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    userId: user.id,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const message = data.error || 'Ошибка при выдаче доступа';
+                setNotificationMessage(message);
+                setNotification(true);
+                throw new Error(message);
+            }
+
+            console.log('Права доступа успешно выданы:', data);
+            setNotificationMessage(`Пользователь ${user.username} получил доступ к дисциплине`);
+            setNotification(true);
+        } catch (err) {
+            console.error('Ошибка:', err);
+        }
     };
 
     const handleSaveChanges = async () => {
@@ -129,11 +185,15 @@ const EditDiscipline = () => {
                     body: JSON.stringify({ order: i })
                 });
             }
-            // Обновляем исходное состояние
+
             setInitialModules([...disciplineModules]);
+            setNotificationMessage("Изменения успешно сохранены!");
             setNotification(true);
+
         } catch (error) {
             console.error('Ошибка сохранения:', error);
+            setNotificationMessage(`Ошибка сохранения: ${error}`);
+            setNotification(true);
         }
     };
 
@@ -156,25 +216,54 @@ const EditDiscipline = () => {
 
     return (
         <>
-        <DragDropContext onDragEnd={onDragEnd}>
-            <div className={styles.page}>
-                <div className={clsx(styles.colContainer, styles.aside)}>
-                    <TopicViewer availableModules={availableModules} disciplineModules={disciplineModules}/>
-                    <div onClick={() => deleteModule()} className={styles.deleteBtn}>Удалить дисциплину</div>
-                </div>
-                <div className={clsx(styles.colContainer, styles.main)}>
-                    <div className={styles.titleContainer}>
-                        <span className={styles.heading}>Название дисциплины</span>
-                        <span
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={(e) => setTitle(e.target.innerText)}
-                            className={clsx(styles.editable, styles.title)}
-                        >
+            <DragDropContext onDragEnd={onDragEnd}>
+                <div className={styles.page}>
+                    <div className={clsx(styles.colContainer, styles.aside)}>
+                        <div className={styles.sideContainer}>
+                            <TopicViewer availableModules={availableModules} disciplineModules={disciplineModules}/>
+                            <div className={styles.searchСontainer}>
+                                <input
+                                    type="text"
+                                    placeholder="Поиск пользователя..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                />
+                                {searchQuery && (
+                                    <ul>
+                                        {filteredUsers?.map(user => (
+                                            <li
+                                                key={user.id}
+                                                onClick={() => handleUserClick(user)} // Устанавливаем выбранного пользователя
+                                                style={{cursor: "pointer"}} // Сделаем курсор как "указатель"
+                                            >
+                                                {user.username}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <button
+                                    onClick={() => selectedUser && handleGiveAccess(selectedUser, discipline.id)} // Отправляем выбранного пользователя
+                                    disabled={!selectedUser} // Если пользователь не выбран, кнопка будет отключена
+                                >
+                                    Открыть доступ к дисциплине
+                                </button>
+                            </div>
+                            <div onClick={() => deleteModule()} className={styles.deleteBtn}>Удалить дисциплину</div>
+                        </div>
+                    </div>
+                    <div className={clsx(styles.colContainer, styles.main)}>
+                        <div className={styles.titleContainer}>
+                            <span className={styles.heading}>Название дисциплины</span>
+                            <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => setTitle(e.target.innerText)}
+                                className={clsx(styles.editable, styles.title)}
+                            >
                             {title}
                         </span>
-                    </div>
-                    <div className={styles.titleContainer}>
+                        </div>
+                        <div className={styles.titleContainer}>
                         <span className={styles.heading}>Описание</span>
                         <span
                             contentEditable
@@ -252,7 +341,7 @@ const EditDiscipline = () => {
         </DragDropContext>
             {showNotification && (
                 <Notification
-                    message="Дисциплина успешно обновлена!"
+                    message={notificationMessage}
                     onClose={() => setNotification(false)}
                 />
             )}

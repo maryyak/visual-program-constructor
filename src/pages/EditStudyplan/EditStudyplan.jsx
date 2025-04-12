@@ -9,6 +9,7 @@ import StudyplanDiscipline from "./components/StudyplanDiscipline/StudyplanDisci
 import Notification from "../../components/Notification/Notification";
 import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
 import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
+import authUser from "../../hooks/api/users/authUser";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -18,15 +19,18 @@ const EditDiscipline = () => {
     const { userStudyplans, loading, error } = useUserStudyplans();
     const { disciplines: studyplanDisciplinesFromAPI } = useStudyplansDisciplines(id);
     const { userDisciplines: availableDisciplinesAll, loading: loadingAvailable } = useUserDisciplines();
+
     const studyplan = Array.isArray(userStudyplans)
         ? userStudyplans.find((plan) => plan.id === Number(id))
         : null;
 
-    console.log("studyplans:", userStudyplans);
-    console.log("studyplan:", studyplan);
-    console.log("availableDisciplinesAll:", availableDisciplinesAll);
-    console.log("studyplanDisciplinesFromAPI:", studyplanDisciplinesFromAPI);
+    const { users } = authUser();
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const userArray = users?.users || [];
+
+    const [filteredUsers, setFilteredUsers] = useState(userArray);
+    const [selectedUser, setSelectedUser] = useState(null);
 
 
     const [availableDisciplines, setAvailableDisciplines] = useState([]);
@@ -36,7 +40,9 @@ const EditDiscipline = () => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [course, setCourse] = useState("");
+
     const [showNotification, setNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
 
     useEffect(() => {
         if (studyplan) {
@@ -61,6 +67,55 @@ const EditDiscipline = () => {
             setAvailableDisciplines(filtered);
         }
     }, [availableDisciplinesAll, studyplanDisciplines]);
+
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+
+        if (Array.isArray(userArray)) {
+            const filteredUsers = userArray.filter(user =>
+                user.username.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredUsers(filteredUsers);
+            console.log('Отфильтрованные пользователи:', filteredUsers);
+        } else {
+            console.error('Ошибка: users не является массивом', userArray);
+        }
+    };
+
+    const handleUserClick = (user) => {
+        setSelectedUser(user);
+    };
+
+    const handleGiveAccess = async (user, studyplanId) => {
+        try {
+            const response = await fetch(`${API_URL}/user-studyplans/${studyplanId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    userId: user.id,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const message = data.error || 'Ошибка при выдаче доступа';
+                setNotificationMessage(message);
+                setNotification(true);
+                throw new Error(message);
+            }
+
+            console.log('Права доступа успешно выданы:', data);
+            setNotificationMessage(`Пользователь ${user.username} получил доступ к учебному плану`);
+            setNotification(true);
+        } catch (err) {
+            console.error('Ошибка:', err);
+        }
+    };
 
     const onDragEnd = (result) => {
         const { source, destination, draggableId } = result;
@@ -143,9 +198,13 @@ const EditDiscipline = () => {
             }
 
             setInitialDisciplines([...studyplanDisciplines]);
+            setNotificationMessage(`Учебный план успешно обновлён!`);
             setNotification(true);
+
         } catch (error) {
             console.error('Ошибка сохранения:', error);
+            setNotificationMessage(`Ошибка сохранения: ${error}`);
+            setNotification(true);
         }
     };
 
@@ -171,8 +230,37 @@ const EditDiscipline = () => {
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className={styles.page}>
                     <div className={clsx(styles.colContainer, styles.aside)}>
-                        <DisciplineViewer availableDisciplines={availableDisciplines}/>
-                        <div onClick={() => deleteModule()} className={styles.deleteBtn}>Удалить учебный план</div>
+                        <div className={styles.sideContainer}>
+                            <DisciplineViewer availableDisciplines={availableDisciplines}/>
+                            <div className={styles.searchСontainer}>
+                                <input
+                                    type="text"
+                                    placeholder="Поиск пользователя..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                />
+                                {searchQuery && (
+                                    <ul>
+                                        {filteredUsers?.map(user => (
+                                            <li
+                                                key={user.id}
+                                                onClick={() => handleUserClick(user)} // Устанавливаем выбранного пользователя
+                                                style={{cursor: "pointer"}} // Сделаем курсор как "указатель"
+                                            >
+                                                {user.username}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <button
+                                    onClick={() => selectedUser && handleGiveAccess(selectedUser, studyplan.id)} // Отправляем выбранного пользователя
+                                    disabled={!selectedUser} // Если пользователь не выбран, кнопка будет отключена
+                                >
+                                    Открыть доступ к учебному плану
+                                </button>
+                            </div>
+                            <div onClick={() => deleteModule()} className={styles.deleteBtn}>Удалить учебный план</div>
+                        </div>
                     </div>
                     <div className={clsx(styles.colContainer, styles.main)}>
                         <div className={styles.titleContainer}>
@@ -277,7 +365,7 @@ const EditDiscipline = () => {
             </DragDropContext>
             {showNotification && (
                 <Notification
-                    message="Учебный план успешно обновлен!"
+                    message={notificationMessage}
                     onClose={() => setNotification(false)}
                 />
             )}
