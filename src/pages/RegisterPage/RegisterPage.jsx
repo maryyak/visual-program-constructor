@@ -4,7 +4,6 @@ import useAuth from "../../hooks/api/users/authUser";
 import styles from "../LoginPage/LoginPage.module.scss";
 
 const RegisterPage = () => {
-    const [login, setLogin] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,7 +22,7 @@ const RegisterPage = () => {
 
         try {
             // Выполняем регистрацию через хук useAuth
-            const data = await register(username, password, login);
+            const data = await register(username, password);
             if (data) {
                 navigate("/login"); // Перенаправляем на страницу логина после успешной регистрации
             }
@@ -37,15 +36,6 @@ const RegisterPage = () => {
             <h1>Регистрация</h1>
             <form onSubmit={handleSubmit}>
                 <div>
-                    <div>
-                        <label>Логин</label>
-                        <input className={styles.input}
-                               type="text"
-                               value={login}
-                               onChange={(e) => setLogin(e.target.value)}
-                               required
-                        />
-                    </div>
                     <div>
                         <label>Имя пользователя</label>
                         <input className={styles.input}

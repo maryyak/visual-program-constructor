@@ -23,14 +23,14 @@ const useAuth = () => {
     };
 
 
-    const register = async (username, password, login) => {
+    const register = async (username, password) => {
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // важно для куков
-                body: JSON.stringify({ username, password, login }),
+                body: JSON.stringify({ username, password }),
             });
 
             const data = await response.json();

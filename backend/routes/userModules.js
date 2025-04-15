@@ -1,5 +1,5 @@
 const express = require("express");
-const { UserModules, Module } = require("../models");
+const { UserModules, Module, User } = require("../models");
 const { authMiddleware } = require("../routes/users");
 const router = express.Router();
 
@@ -17,11 +17,47 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 });
 
-//Привязать пользователя к модулю
+router.get("/:moduleId", async (req, res) => {
+    try {
+        const { moduleId } = req.params;
+
+        const moduleUsers = await UserModules.findAll({
+            where: { moduleId: moduleId },
+            include: [{ model: User }],
+        });
+
+        res.json(moduleUsers.map(entry => entry.User));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+//Привязать текущего пользователя к модулю
 router.post("/:moduleId", authMiddleware, async (req, res) => {
     try {
         const { moduleId } = req.params;
-        const { userId } = req.body;
+        const userId = req.user.id;
+
+        const existingEntry = await UserModules.findOne({
+            where: { userId, moduleId }
+        });
+
+        if (existingEntry) {
+            return res.status(400).json({ error: "Пользователь уже привязан к этому модулю" });
+        }
+
+        const newEntry = await UserModules.create({ userId, moduleId });
+
+        res.status(201).json(newEntry);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+//Привязать другого пользователя к модулю
+router.post("/:moduleId/user/:userId", authMiddleware, async (req, res) => {
+    try {
+        const { moduleId, userId } = req.params;
 
         const existingEntry = await UserModules.findOne({
             where: { userId, moduleId }

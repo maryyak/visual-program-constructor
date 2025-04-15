@@ -6,13 +6,14 @@ import styles from "./LoginPage.module.scss";
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { login, loading, error } = useAuth();
+    const {login, loading, error} = useAuth();
     const navigate = useNavigate();
     const [user, setUser] = useState()
 
     useEffect(() => {
         if (user) {
             navigate("/");
+            window.location.reload();
         }
     }, [user, navigate]);
 
@@ -36,6 +37,8 @@ const LoginPage = () => {
                             <label>Имя пользователя</label>
                             <input className={styles.input}
                                    type="text"
+                                   name="username"
+                                   autoComplete="username"
                                    value={username}
                                    onChange={(e) => setUsername(e.target.value)}
                             />
@@ -43,9 +46,11 @@ const LoginPage = () => {
                         <div>
                             <label>Пароль</label>
                             <input className={styles.input}
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                   type="password"
+                                   name="password"
+                                   autoComplete="current-password"
+                                   value={password}
+                                   onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
                         <button className={styles.button} type="submit" disabled={loading}>

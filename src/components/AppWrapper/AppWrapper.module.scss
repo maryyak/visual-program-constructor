@@ -1,6 +1,4 @@
 .app {
-  max-width: 1180px;
-  width: 100%;
   margin: 0 auto;
   padding: 30px;
   display: flex;
@@ -11,7 +9,7 @@
 
 /* Когда боковая панель открыта, добавляем отступ слева */
 .app.sidebarOpen {
-  margin-left: 250px; /* Сдвигаем контент вправо на ширину панели */
+  padding-left: 280px; /* Сдвигаем контент вправо на ширину панели */
 }
 
 .contentWrapper {

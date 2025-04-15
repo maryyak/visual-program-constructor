@@ -7,9 +7,9 @@ const useUserStudyplans = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
     // Получение учебных планов, принадлежащих пользователю
     const fetchUserStudyplans = async () => {
+        console.log("mutate")
         setLoading(true);
         try {
             const response = await fetch(`${API_URL}/user-studyplans`, {

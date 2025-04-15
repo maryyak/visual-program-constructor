@@ -1,18 +1,11 @@
-import {useLocation, useNavigate} from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import styles from "./BackButton.module.scss"
 
-const BackButton = () => {
+const BackButton = ({link}) => {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const canGoBack = location.key !== "default";
-
-    if (!canGoBack || location.pathname === "/login" || location.pathname === "/register") {
-        return null;
-    }
 
     return (
-        <button onClick={() => navigate(-1)} className={styles.button}>
+        <button onClick={() => navigate(link)} className={styles.button}>
             <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"
                  xmlnsXlink="http://www.w3.org/1999/xlink">
                 <rect x="46" y="46" width="46" height="46" transform="rotate(-180 46 46)"

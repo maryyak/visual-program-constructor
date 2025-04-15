@@ -1,48 +1,18 @@
 import React from 'react';
-import {useState, useEffect} from "react";
 import styles from "./HomePage.module.scss";
 import BaseTitle from "../../components/BaseTitle/BaseTitle";
 import ModuleCard from "../MyModules/components/ModuleCard/ModuleCard";
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import DisciplineCard from "../MyDisciplines/components/DisciplineCard/DisciplineCard";
 import StudyplanCard from "../MyStudyplans/components/StudyplanCard/StudyplanCard";
-import useAuth from "../../hooks/api/users/authUser";
 import useUserDisciplines from "../../hooks/api/disciplines/useUserDIsciplines";
-import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
 import useUserModules from "../../hooks/api/modules/useUserModules";
+import {useUserStudyplans} from "../../components/UserStudyplansContext";
 
 const HomePage = () => {
     const {userModules, loading: modulesLoading, error: modulesError} = useUserModules();
     const {userDisciplines, loading: disciplinesLoading, error: disciplinesError} = useUserDisciplines();
     const {userStudyplans, loading: studyplansLoading, error: studyplansError} = useUserStudyplans();
-    const [authenticated, setAuthenticated] = useState(false); // состояние для проверки авторизации
-    const navigate = useNavigate(); // хук для перенаправления
-    const [user, setUser] = useState(null);
-    const { logout, checkAuth } = useAuth();
-    console.log("Дисциплины:",userDisciplines)
-    console.log("Модули:",userModules)
-    console.log("Планы:",userStudyplans)
-
-    useEffect(() => {
-        const verifyUser = async () => {
-            const userData = await checkAuth();
-            if (userData) {
-                setUser(userData);
-                setAuthenticated(true);
-
-            } else {
-                setAuthenticated(false);
-                navigate("/login");
-            }
-        };
-
-        verifyUser();
-    }, []);
-
-    // Если пользователь не авторизован, выводим сообщение о редиректе
-    if (!authenticated) {
-        return <div>Вы не авторизованы, перенаправляем на страницу авторизации...</div>;
-    }
 
     if (modulesLoading || disciplinesLoading || studyplansLoading) return <p>Загрузка...</p>;
     if (disciplinesError || modulesError || studyplansError) return <p
@@ -50,16 +20,6 @@ const HomePage = () => {
 
     return (
         <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.row}>
-                    <span className={styles.avatar}></span>
-                    <div className={styles.info}>
-                        <span className={styles.name}>{user?.username || "Гость"}</span>
-                        <span className={styles.role}>Администратор</span>
-                    </div>
-                </div>
-                <button className={styles.button} onClick={logout}>Выйти</button>
-            </div>
             <div className={styles.group}>
                 <BaseTitle title="Мои модули" button={
                     <Link to={`/my-modules`}>
@@ -83,7 +43,6 @@ const HomePage = () => {
                         <ModuleCard key={module.id} module={module}/>
                     ))}
                 </div>
-                {/*<button className={styles.button}>Смотреть все модули</button>*/}
             </div>
             <div className={styles.group}>
                 <BaseTitle title="Мои дисциплины" button={
@@ -108,7 +67,6 @@ const HomePage = () => {
                         <DisciplineCard key={discipline.id} discipline={discipline}/>
                     ))}
                 </div>
-                {/*<button className={styles.button}>Смотреть все дисциплины</button>*/}
             </div>
             <div className={styles.group}>
                 <BaseTitle title="Мои учебные планы" button={
@@ -133,12 +91,6 @@ const HomePage = () => {
                         <StudyplanCard key={studyplan.id} studyplan={studyplan}/>
                     ))}
                 </div>
-                {/*<div className={styles.gridLayout}>*/}
-                {/*    {disciplines.slice(0, 3).map((discipline) => (*/}
-                {/*        <DisciplineCard key={discipline.id} discipline={discipline}/>*/}
-                {/*    ))}*/}
-                {/*</div>*/}
-                {/*<button className={styles.button}>Смотреть все учебные планы</button>*/}
             </div>
         </div>
     );

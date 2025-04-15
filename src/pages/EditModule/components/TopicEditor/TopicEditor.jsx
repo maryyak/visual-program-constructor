@@ -60,7 +60,7 @@ const TopicEditor = (module) => {
         if (a.id === moduleTopic?.id) return -1;
         if (b.id === moduleTopic?.id) return 1;
         return 0;
-    });
+    }).slice(0, 5);
 
     if (loading || moduleLoading) return <p>Загрузка...</p>;
     if (error || moduleError) return <p style={{color: 'red'}}>Ошибка: {error}</p>;

@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import styles from "./Sidebar.module.scss";
 import StudyplanDisciplines from "./components/StudyplanDisciplines";
-import useUserStudyplans from "../../hooks/api/studyplans/useUserStudyplans";
 import { useLocation } from "react-router-dom";
+import {useUserStudyplans} from "../UserStudyplansContext";
 
 const Sidebar = ({isOpen, setIsOpen}) => {
     const location = useLocation();
@@ -10,17 +10,12 @@ const Sidebar = ({isOpen, setIsOpen}) => {
 
     useEffect(() => {
         // Открыть панель на домашней странице, закрыть на других
-        if (location.pathname === "/") {
-            setIsOpen(true);
-        } else {
+        if (location.pathname === "/login" || location.pathname === "/register") {
             setIsOpen(false);
+        } else {
+            setIsOpen(true);
         }
     }, [location]);
-
-    // Скрывать боковую панель на страницах "login" и "register"
-    if (location.pathname === "/login" || location.pathname === "/register") {
-        return null;
-    }
 
     return (
         <div className={styles.sidebarContainer}>
@@ -30,9 +25,9 @@ const Sidebar = ({isOpen, setIsOpen}) => {
                 <div>
                     <ul className={styles.ulStuduplans}>
                         {userStudyplans.map((studyplan) => (
-                            <p key={studyplan.id} className={styles.studyplanItem}>
-                                <StudyplanDisciplines studyplan={studyplan} />
-                            </p>
+                            <div key={studyplan.id} className={styles.studyplanItem}>
+                                <StudyplanDisciplines studyplan={studyplan} mutate={userStudyplans}/>
+                            </div>
                         ))}
                     </ul>
                 </div>

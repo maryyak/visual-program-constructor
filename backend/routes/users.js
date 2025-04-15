@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 // Middleware проверки токена
 const authMiddleware = (req, res, next) => {
     const token = req.cookies.token;
-    console.log("Токен из куки на сервере: ", token);
+    console.log("Токен из куки на сервере: ", req.cookies.token);
     if (!token) return res.status(401).json({ message: "Нет доступа" });
 
     try {
@@ -83,7 +83,7 @@ router.get("/users/search", authMiddleware, async (req, res) => {
 // Регистрация
 router.post("/register", async (req, res) => {
     try {
-        const { username, password, login } = req.body;
+        const { username, password } = req.body;
 
         const existingUser = await User.findOne({ where: { username } });
         if (existingUser) {
@@ -91,7 +91,7 @@ router.post("/register", async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({ username, password: hashedPassword, login });
+        const newUser = await User.create({ username, password: hashedPassword });
 
         console.log("Создан новый пользователь:", newUser);
         res.status(201).json({ message: "Пользователь зарегистрирован", user: newUser });
