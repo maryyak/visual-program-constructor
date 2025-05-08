@@ -31,43 +31,45 @@ const EditorsBlock = ({elementId, data, loading, error, handleGiveAccess}) => {
     };
 
     return (
-        <div className={clsx(styles.contents, styles.searchContainer)}>
+        <div className={clsx(styles.contents)}>
             <span className={styles.contentsHeading}>Редакторы</span>
-            <ul>
-                {loading && <p>Загрузка...</p>}
-                {error && <p style={{color: "red"}}>Ошибка: {error}</p>}
-                {data.map((user, index) => {
-                        return <li key={index}>{user.username}</li>
-                    }
-                )}
-            </ul>
-            <input
-                type="text"
-                placeholder="Поиск пользователя..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className={styles.searchInput}
-            />
-            {searchQuery && (
-                <ul className={styles.searchUl}>
-                    {filteredUsers?.map((user, index) => (
-                        <li
-                            className={clsx(styles.searchLi, user.id === selectedUser?.id && styles.selected)}
-                            key={index}
-                            onClick={() => handleUserClick(user)} // Устанавливаем выбранного пользователя
-                        >
-                            {user.username}
-                        </li>
-                    ))}
+            <div className={styles.searchContainer}>
+                <ul>
+                    {loading && <p>Загрузка...</p>}
+                    {error && <p style={{color: "red"}}>Ошибка: {error}</p>}
+                    {data.map((user, index) => {
+                            return <li key={index}>{user.username}</li>
+                        }
+                    )}
                 </ul>
-            )}
-            <button
-                className={styles.searchButton}
-                onClick={() => selectedUser && handleGiveAccess(selectedUser, elementId)} // Отправляем выбранного пользователя
-                disabled={!selectedUser} // Если пользователь не выбран, кнопка будет отключена
-            >
-                Открыть доступ к дисциплине
-            </button>
+                <input
+                    type="text"
+                    placeholder="Поиск пользователя..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className={styles.searchInput}
+                />
+                {searchQuery && (
+                    <ul className={styles.searchUl}>
+                        {filteredUsers?.map((user, index) => (
+                            <li
+                                className={clsx(styles.searchLi, user.id === selectedUser?.id && styles.selected)}
+                                key={index}
+                                onClick={() => handleUserClick(user)} // Устанавливаем выбранного пользователя
+                            >
+                                {user.username}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <button
+                    className={styles.searchButton}
+                    onClick={() => selectedUser && handleGiveAccess(selectedUser, elementId)} // Отправляем выбранного пользователя
+                    disabled={!selectedUser} // Если пользователь не выбран, кнопка будет отключена
+                >
+                    Открыть доступ к дисциплине
+                </button>
+            </div>
         </div>
     );
 };
